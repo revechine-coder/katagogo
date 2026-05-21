@@ -29,6 +29,7 @@ final class GameViewModel: ObservableObject {
     @Published var finalScoreText: String? = nil
     @Published var isScoringFinalResult = false
     @Published var showsMoveLabelsOnMainBoard: Bool = false
+    @Published var showsCoordinatesOnMainBoard: Bool = false
     @Published var territory: [[Bool?]] = []
 
     @Published var board: [[Bool?]] = Array(repeating: Array(repeating: nil, count: 19), count: 19)
@@ -237,6 +238,7 @@ final class GameViewModel: ObservableObject {
         moveCount = humanMoveNumber
         boardVersion &+= 1
         lastMove = (col, row)
+        StoneSoundService.shared.playClick()
         currentPlayer = aiColor
         moveSuggestions = []
         moveElapsedAtMove.append(totalElapsedSeconds)
@@ -260,6 +262,7 @@ final class GameViewModel: ObservableObject {
                     self.lastThinkDuration = thinkDuration
                     self.moveElapsedAtMove.append(self.totalElapsedSeconds)
                     self.refreshUI()
+                    StoneSoundService.shared.playClick()
                     self.phase = .playing
                     self.refreshSuggestionsIfNeeded()
                 }
@@ -826,6 +829,7 @@ final class GameViewModel: ObservableObject {
                     self.lastThinkDuration = thinkDuration
                     self.moveElapsedAtMove.append(self.totalElapsedSeconds)
                     self.refreshUI()
+                    StoneSoundService.shared.playClick()
                     self.phase = .playing
                     self.refreshSuggestionsIfNeeded()
                 }
@@ -864,6 +868,7 @@ final class GameViewModel: ObservableObject {
         finalScoreText = nil
         isScoringFinalResult = false
         showsMoveLabelsOnMainBoard = false
+        showsCoordinatesOnMainBoard = false
         territory = []
         moveSuggestions = []
         isShowingSuggestions = false
@@ -923,6 +928,7 @@ final class GameViewModel: ObservableObject {
             lastThinkDuration: lastThinkDuration,
             finalScoreText: finalScoreText,
             showsMoveLabelsOnMainBoard: showsMoveLabelsOnMainBoard,
+            showsCoordinatesOnMainBoard: showsCoordinatesOnMainBoard,
             handicapCount: handicapCount,
             modelName: modelName,
             accumulatedElapsedSeconds: totalElapsedSeconds,
@@ -955,6 +961,7 @@ final class GameViewModel: ObservableObject {
             lastThinkDuration = session.lastThinkDuration
             finalScoreText = session.finalScoreText
             showsMoveLabelsOnMainBoard = session.showsMoveLabelsOnMainBoard
+            showsCoordinatesOnMainBoard = session.showsCoordinatesOnMainBoard
             handicapCount = session.handicapCount
             modelName = session.modelName
             accumulatedElapsed = session.accumulatedElapsedSeconds
@@ -994,6 +1001,7 @@ private struct SavedGameSession: Codable {
     let lastThinkDuration: TimeInterval?
     let finalScoreText: String?
     let showsMoveLabelsOnMainBoard: Bool
+    let showsCoordinatesOnMainBoard: Bool
     let handicapCount: Int
     let modelName: String
     let accumulatedElapsedSeconds: TimeInterval

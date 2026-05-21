@@ -9,6 +9,7 @@ final class AppState: ObservableObject {
         static let kataGoConfigPath = "kataGoConfigPath"
         static let kataGoModelPath = "kataGoModelPath"
         static let handicapCount = "handicapCount"
+        static let stoneSoundPreset = "stoneSoundPreset"
     }
 
     private let defaults = UserDefaults.standard
@@ -79,6 +80,10 @@ final class AppState: ObservableObject {
         didSet { defaults.set(handicapCount, forKey: DefaultsKey.handicapCount) }
     }
 
+    @Published var stoneSoundPreset: String = StoneSoundPreset.wood.rawValue {
+        didSet { defaults.set(stoneSoundPreset, forKey: DefaultsKey.stoneSoundPreset) }
+    }
+
     var modelDisplayName: String {
         URL(fileURLWithPath: kataGoModelPath).lastPathComponent
     }
@@ -127,6 +132,8 @@ final class AppState: ObservableObject {
             let savedHandicapCount = defaults.integer(forKey: DefaultsKey.handicapCount)
             handicapCount = savedHandicapCount == 0 ? 0 : min(max(savedHandicapCount, 2), 9)
         }
+
+        stoneSoundPreset = defaults.string(forKey: DefaultsKey.stoneSoundPreset) ?? StoneSoundPreset.wood.rawValue
 
         persistEnginePaths()
     }

@@ -26,10 +26,11 @@ struct ContentView: View {
     private var mainLayout: some View {
         GeometryReader { proxy in
             let width = proxy.size.width
-            let spacing: CGFloat = width < 920 ? 12 : 18
-            let padding: CGFloat = width < 920 ? 12 : 18
-            let leftWidth = min(width < 920 ? 196 : 224, max(174, width * 0.22))
-            let rightWidth = min(width < 920 ? 248 : 284, max(220, width * 0.27))
+            let compact = width < 1080
+            let spacing: CGFloat = compact ? 12 : 18
+            let padding: CGFloat = compact ? 12 : 18
+            let leftWidth = min(compact ? 174 : 224, max(174, width * 0.21))
+            let rightWidth = min(compact ? 220 : 284, max(220, width * 0.26))
 
             HStack(alignment: .top, spacing: spacing) {
                 leftColumn
@@ -70,7 +71,7 @@ struct ContentView: View {
         let shape = RoundedRectangle(cornerRadius: AppTheme.panelRadius, style: .continuous)
 
         return ZStack {
-            BoardCanvas(viewModel: viewModel, boardVersion: viewModel.boardVersion, suggestionCount: viewModel.moveSuggestions.count, showsLabels: viewModel.showsMoveLabelsOnMainBoard, territoryCount: viewModel.territory.count)
+            BoardCanvas(viewModel: viewModel, boardVersion: viewModel.boardVersion, suggestionCount: viewModel.moveSuggestions.count, showsLabels: viewModel.showsMoveLabelsOnMainBoard || viewModel.showsCoordinatesOnMainBoard, territoryCount: viewModel.territory.count)
                 .padding(AppTheme.Metrics.boardPadding)
         }
         .background(AppTheme.boardSurface, in: shape)

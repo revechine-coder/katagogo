@@ -4,15 +4,49 @@ struct MiniMapView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             PanelHeader(title: "对局概览", trailingSystemImage: nil)
-            MiniMapCanvas(viewModel: viewModel, boardVersion: viewModel.boardVersion)
-                .frame(maxWidth: .infinity)
-                .aspectRatio(1, contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .stroke(viewModel.showsMoveLabelsOnMainBoard ? AppTheme.teal.opacity(0.78) : AppTheme.hairline, lineWidth: viewModel.showsMoveLabelsOnMainBoard ? 1.5 : 1)
-                )
-                .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+
+            ZStack(alignment: .topTrailing) {
+                MiniMapCanvas(viewModel: viewModel, boardVersion: viewModel.boardVersion)
+                    .frame(maxWidth: .infinity)
+                    .aspectRatio(1, contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
+                    .help("点击切换主棋盘手数标签显示")
+
+                minimapHint
+                    .padding(6)
+            }
+            .overlay(
+                RoundedRectangle(cornerRadius: 7, style: .continuous)
+                    .stroke(viewModel.showsMoveLabelsOnMainBoard ? AppTheme.teal.opacity(0.78) : AppTheme.hairline, lineWidth: viewModel.showsMoveLabelsOnMainBoard ? 1.5 : 1)
+            )
+            .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
+
+            HStack(spacing: 6) {
+                Image(systemName: viewModel.showsCoordinatesOnMainBoard ? "grid" : "grid.off")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(viewModel.showsCoordinatesOnMainBoard ? AppTheme.tealDark : AppTheme.tertiaryText)
+                Button {
+                    viewModel.showsCoordinatesOnMainBoard.toggle()
+                    viewModel.boardVersion &+= 1
+                } label: {
+                    Text("坐标")
+                        .font(.caption)
+                        .foregroundStyle(viewModel.showsCoordinatesOnMainBoard ? AppTheme.text : AppTheme.secondaryText)
+                }
+                .buttonStyle(.plain)
+                .help(viewModel.showsCoordinatesOnMainBoard ? "隐藏主棋盘坐标" : "显示主棋盘坐标")
+
+                Spacer()
+
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(viewModel.showsMoveLabelsOnMainBoard ? AppTheme.teal : AppTheme.tertiaryText)
+                        .frame(width: 5, height: 5)
+                    Text("手数标签")
+                        .font(.caption)
+                        .foregroundStyle(viewModel.showsMoveLabelsOnMainBoard ? AppTheme.text : AppTheme.secondaryText)
+                }
+            }
 
             VStack(spacing: 0) {
                 HStack {
@@ -37,6 +71,20 @@ struct MiniMapView: View {
         }
         .padding(AppTheme.Metrics.panelPadding)
         .panelStyle()
+    }
+
+    private var minimapHint: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "text.viewfinder")
+                .font(.system(size: 9, weight: .semibold))
+            Text("点击切换标签")
+                .font(.system(size: 9, weight: .medium))
+        }
+        .foregroundStyle(AppTheme.tertiaryText)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(AppTheme.surface.opacity(0.82), in: RoundedRectangle(cornerRadius: 4, style: .continuous))
+        .allowsHitTesting(false)
     }
 }
 
@@ -208,8 +256,10 @@ class MiniMapNSView: NSView {
     }
 
     override func mouseDown(with event: NSEvent) {
-        viewModel?.showsMoveLabelsOnMainBoard.toggle()
-        needsDisplay = true
+        let show = !(viewModel?.showsMoveLabelsOnMainBoard ?? false)
+        viewModel?.showsMoveLabelsOnMainBoard = show
+        viewModel?.showsCoordinatesOnMainBoard = show
+        viewModel?.boardVersion &+= 1
     }
 
     override func resetCursorRects() {

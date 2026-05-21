@@ -25,7 +25,7 @@ class BoardNSView: NSView {
             stones: stones,
             lastMove: vm.lastMove,
             moveLabels: vm.showsMoveLabelsOnMainBoard ? vm.moveLabels : [],
-            showCoordinates: vm.showsMoveLabelsOnMainBoard,
+            showCoordinates: vm.showsCoordinatesOnMainBoard,
             suggestions: vm.isShowingSuggestions ? vm.moveSuggestions : [],
             territory: vm.territory
         )

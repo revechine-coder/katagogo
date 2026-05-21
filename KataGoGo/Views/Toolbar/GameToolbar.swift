@@ -79,6 +79,7 @@ struct GameToolbar: View {
                 HandicapPicker(viewModel: viewModel, compact: isCompact)
                 Divider().frame(height: 26)
                 SuggestionToggle(viewModel: viewModel)
+                SoundPicker(compact: isCompact)
                 Spacer(minLength: 8)
                 EngineStatusView(
                     phase: viewModel.phase,
@@ -315,18 +316,23 @@ private struct ModelMenu: View {
     var compact: Bool = false
 
     var body: some View {
-        Button {} label: {
-            if compact {
-                Image(systemName: "gearshape")
-            } else {
-                Label("配置引擎", systemImage: "gearshape")
+        HStack(spacing: compact ? 0 : 6) {
+            Image(systemName: "cpu")
+                .font(.system(size: compact ? 11 : 12, weight: .medium))
+                .foregroundStyle(AppTheme.secondaryText)
+            if !compact {
+                Text("内置引擎")
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.secondaryText)
             }
+            Text(viewModel.modelName)
+                .font(.footnote.weight(.medium))
+                .foregroundStyle(AppTheme.text)
+                .lineLimit(1)
+                .truncationMode(.middle)
         }
-        .buttonStyle(.plain)
-        .disabled(true)
-        .help("封装版已固定使用内置 KataGo 引擎")
-        .foregroundStyle(AppTheme.tertiaryText)
-        .frame(width: compact ? 40 : 88, height: AppTheme.Metrics.controlHeight)
+        .frame(height: AppTheme.Metrics.controlHeight)
+        .help("内置 KataGo 引擎 · \(viewModel.modelName)")
     }
 }
 
@@ -431,5 +437,43 @@ private struct EngineStatusView: View {
         case .finished: AppTheme.warning
         default: AppTheme.secondaryText
         }
+    }
+}
+
+private struct SoundPicker: View {
+    @StateObject private var appState = AppState.shared
+    var compact: Bool = false
+
+    private var isMuted: Bool {
+        appState.stoneSoundPreset == StoneSoundPreset.mute.rawValue
+    }
+
+    var body: some View {
+        Menu {
+            ForEach(StoneSoundPreset.allCases, id: \.rawValue) { preset in
+                Button {
+                    appState.stoneSoundPreset = preset.rawValue
+                } label: {
+                    if appState.stoneSoundPreset == preset.rawValue {
+                        Label(preset.label, systemImage: "checkmark")
+                    } else {
+                        Text(preset.label)
+                    }
+                }
+            }
+        } label: {
+            Image(systemName: isMuted ? "speaker.slash" : "speaker.wave.1")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(isMuted ? AppTheme.tertiaryText : AppTheme.secondaryText)
+                .frame(width: AppTheme.Metrics.controlHeight, height: AppTheme.Metrics.controlHeight)
+                .contentShape(Rectangle())
+        }
+        .menuIndicator(.hidden)
+        .help("落子音效：\(currentLabel)")
+        .frame(width: AppTheme.Metrics.controlHeight, height: AppTheme.Metrics.controlHeight)
+    }
+
+    private var currentLabel: String {
+        StoneSoundPreset(rawValue: appState.stoneSoundPreset)?.label ?? "木盘"
     }
 }
