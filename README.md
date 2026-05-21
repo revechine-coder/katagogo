@@ -55,6 +55,7 @@ git lfs pull
 ```
 
 Without LFS, large model files may appear as small pointer files and the bundled engine resources will be incomplete.
+The Xcode build script checks for this and fails if the bundled model is still a Git LFS pointer.
 
 ## Build From Source
 
