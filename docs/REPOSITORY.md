@@ -64,24 +64,16 @@ Large model files are tracked with Git LFS. Do not replace these files without c
 
 `games/` contains local saved game JSON files and `_index.json`. These files are useful for app testing and demo state, but avoid committing private or accidental game records unless they are intentional fixtures.
 
-## Releases
-
-`releases/` contains packaged app artifacts. Large release files are tracked with Git LFS.
-
-The main release helper is:
-
-```sh
-scripts/release-arm64.sh
-```
-
-It builds an Apple Silicon package targeting macOS 12 or later.
-
 ## Documentation
 
 - `README.md`: GitHub project overview
 - `DESIGN.md`: product and UI design system guidance
 - `docs/GITHUB_SETUP.md`: GitHub, Git LFS, and publishing notes
 - `docs/superpowers/`: planning/spec artifacts from prior development sessions
+
+## Scripts
+
+`scripts/` contains local helper scripts that are relevant to the current app source, such as icon generation.
 
 ## Local Files
 

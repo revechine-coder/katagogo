@@ -1,4 +1,2 @@
 kata-engine/kata1-b28c512nbt.bin.gz filter=lfs diff=lfs merge=lfs -text
 kata-engine/kata1-b18c384nbt.bin.gz filter=lfs diff=lfs merge=lfs -text
-releases/KataGoGo[[:space:]]2026-05-20[[:space:]]23-02-54/KataGoGo.zip filter=lfs diff=lfs merge=lfs -text
-releases/KataGoGo[[:space:]]2026-05-20[[:space:]]23-02-54/KataGoGo.app/Contents/Resources/kata-engine/kata1-b18c384nbt.bin.gz filter=lfs diff=lfs merge=lfs -text

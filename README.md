@@ -6,19 +6,12 @@ The app is designed as a desktop training desk: the board stays central, side pa
 
 ## System Support
 
-Current source build target:
+Current supported version:
 
 - macOS 26 or later
 - Apple Silicon Macs (`arm64`)
 - Xcode with the macOS 26 SDK
 - Metal-capable local KataGo engine resources
-
-Packaged release script target:
-
-- `scripts/release-arm64.sh` builds an Apple Silicon package with `MACOSX_DEPLOYMENT_TARGET=12.0`
-- Target Macs: Apple Silicon Macs running macOS 12 or later
-
-Intel scripts are present for packaging experiments, but the main checked-in Xcode project and bundled app workflow are currently optimized for Apple Silicon.
 
 ## Features
 
@@ -42,7 +35,6 @@ go-core/               Rust bridge for Go/KataGo engine interaction
 kata-engine/           Bundled KataGo binaries, config, and model files
 kata-go-src/           Vendored KataGo source reference
 games/                 Local saved-game JSON store
-releases/              Packaged app artifacts
 scripts/               Release and asset helper scripts
 docs/                  Project notes and repository maintenance docs
 DESIGN.md              Product and UI design system guide
@@ -83,12 +75,6 @@ xcodebuild \
   -configuration Debug \
   -derivedDataPath /tmp/KataGoGoDerivedData \
   build
-```
-
-Apple Silicon release package:
-
-```sh
-scripts/release-arm64.sh
 ```
 
 ## Engine Resources

@@ -36,8 +36,6 @@ Tracked large files currently include:
 ```text
 kata-engine/kata1-b18c384nbt.bin.gz
 kata-engine/kata1-b28c512nbt.bin.gz
-releases/KataGoGo 2026-05-20 23-02-54/KataGoGo.zip
-releases/KataGoGo 2026-05-20 23-02-54/KataGoGo.app/Contents/Resources/kata-engine/kata1-b18c384nbt.bin.gz
 ```
 
 Check LFS status:
