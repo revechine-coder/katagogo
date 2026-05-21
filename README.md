@@ -78,6 +78,23 @@ xcodebuild \
   build
 ```
 
+## Build On GitHub
+
+The repository includes a GitHub Actions workflow at `.github/workflows/build-macos.yml`.
+
+- Runner: `macos-26`
+- Build: Release `KataGoGo.app`
+- Artifact: `KataGoGo-macos26-arm64.zip`
+- The workflow checks out Git LFS files and fails if the bundled model is still an LFS pointer.
+
+Run it from GitHub:
+
+1. Open the repository on GitHub.
+2. Go to **Actions**.
+3. Select **Build macOS App**.
+4. Click **Run workflow**.
+5. Download the `KataGoGo-macos26-arm64` artifact from the completed run.
+
 ## Engine Resources
 
 The app expects KataGo resources under `kata-engine/`, including:
