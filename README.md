@@ -4,6 +4,16 @@ KataGoGo is a native macOS Go training workspace built around KataGo. It pairs a
 
 The app is designed as a desktop training desk: the board stays central, side panels stay dense, and engine feedback is visible without turning the UI into a dashboard.
 
+## Download
+
+Current macOS app package:
+
+[Download KataGoGo-macos26-arm64.zip](https://github.com/revechine-coder/katagogo/releases/download/v0.1.0/KataGoGo-macos26-arm64.zip)
+
+Release page:
+
+[KataGoGo v0.1.0](https://github.com/revechine-coder/katagogo/releases/tag/v0.1.0)
+
 ## System Support
 
 Current supported version:
