@@ -6,10 +6,16 @@ extension Notification.Name {
 
 @main
 struct KataGoGoApp: App {
+    init() {
+        AppState.shared.enforceBundledEnginePaths()
+    }
+
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .onAppear {
+                    AppState.shared.enforceBundledEnginePaths()
+                }
         }
-        .windowResizability(.contentMinSize)
     }
 }

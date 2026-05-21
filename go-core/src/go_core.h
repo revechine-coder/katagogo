@@ -20,6 +20,15 @@ typedef struct {
     uint8_t is_last;
 } MoveLabel;
 
+typedef struct {
+    uint8_t col;
+    uint8_t row;
+    double winrate;
+    double lead;
+    uint32_t visits;
+    uint32_t order;
+} MoveSuggestion;
+
 int go_core_create(void);
 int go_core_destroy(void);
 int go_core_start(const char* binary_path, const char* config_path,
@@ -32,8 +41,12 @@ int go_core_genmove(const char* color,
                     double* out_winrate, double* out_lead);
 int go_core_undo(void);
 int go_core_reset(void);
+int go_core_final_score(char* out_score, int out_score_len);
 
 int go_core_set_level(int level);
+int go_core_set_handicap(int count);
+int go_core_set_suggestions_enabled(int enabled);
+int go_core_refresh_move_suggestions(void);
 
 int go_core_get_render_frame(
     StoneRender* out_stones, int out_max_stones, int* out_num_stones,
@@ -44,10 +57,16 @@ int go_core_get_render_frame(
     char* out_current_player, int out_current_player_len);
 
 int go_core_get_analysis(
-    double* out_winrate_black, double* out_lead,
+    double* out_winrate_black, double* out_lead_black,
     int* out_move_count,
     char* out_current_player, int out_current_player_len,
-    int* out_captures_black, int* out_captures_white);
+    int* out_captures_black, int* out_captures_white,
+    double* out_evaluation_accuracy);
+
+int go_core_get_move_suggestions(
+    MoveSuggestion* out_suggestions, int out_max, int* out_num);
+
+int go_core_get_ownership(double* out_ownership, int out_max);
 
 const char* go_core_last_error(void);
 

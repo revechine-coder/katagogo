@@ -17,6 +17,7 @@ fn dummy_record(move_number: u32) -> MoveRecord {
         captured: vec![],
         winrate: None,
         lead: None,
+        evaluation_accuracy: None,
     }
 }
 

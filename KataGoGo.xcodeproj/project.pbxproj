@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXFileReference section */
-		CC301AAF2FB8DA9D00B5657F /* KataGoGo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; name = KataGoGo.app; path = /Users/mac.chen/Desktop/KataGoGo/build/Debug/KataGoGo.app; sourceTree = "<absolute>"; };
+		CCF5AD0C2FB99CF400D1BE16 /* KataGoGo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KataGoGo.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -33,6 +33,7 @@
 			isa = PBXGroup;
 			children = (
 				CC301AB12FB8DA9D00B5657F /* KataGoGo */,
+				CCF5AD0C2FB99CF400D1BE16 /* KataGoGo.app */,
 			);
 			sourceTree = "<group>";
 		};
@@ -46,6 +47,7 @@
 				CC301AAB2FB8DA9D00B5657F /* Sources */,
 				CC301AAC2FB8DA9D00B5657F /* Frameworks */,
 				CC301AAD2FB8DA9D00B5657F /* Resources */,
+				CC301ABE2FB8DA9E00B56580 /* Copy Engine Resources */,
 			);
 			buildRules = (
 			);
@@ -58,7 +60,7 @@
 			packageProductDependencies = (
 			);
 			productName = KataGoGo;
-			productReference = CC301AAF2FB8DA9D00B5657F /* KataGoGo.app */;
+			productReference = CCF5AD0C2FB99CF400D1BE16 /* KataGoGo.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -105,6 +107,39 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		CC301ABE2FB8DA9E00B56580 /* Copy Engine Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/kata-engine/katago-metal",
+				"$(SRCROOT)/kata-engine/gtp.cfg",
+				"$(SRCROOT)/kata-engine/kata1-b18c384nbt.bin.gz",
+				/opt/homebrew/opt/libzip/lib/libzip.5.dylib,
+				/opt/homebrew/opt/xz/lib/liblzma.5.dylib,
+				/opt/homebrew/opt/zstd/lib/libzstd.1.dylib,
+			);
+			name = "Copy Engine Resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/katago-metal",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/gtp.cfg",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/kata1-b18c384nbt.bin.gz",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/libzip.5.dylib",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/liblzma.5.dylib",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/libzstd.1.dylib",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\nENGINE_SRC=\"${SRCROOT}/kata-engine\"\nENGINE_DST=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}/Contents/Resources/kata-engine\"\nENGINE_BINARY=\"katago-metal\"\nENGINE_CONFIG=\"gtp.cfg\"\nENGINE_MODEL=\"kata1-b18c384nbt.bin.gz\"\nLIBZIP_SRC=\"/opt/homebrew/opt/libzip/lib/libzip.5.dylib\"\nLIBLZMA_SRC=\"/opt/homebrew/opt/xz/lib/liblzma.5.dylib\"\nLIBZSTD_SRC=\"/opt/homebrew/opt/zstd/lib/libzstd.1.dylib\"\n\nfor file in \"${ENGINE_BINARY}\" \"${ENGINE_CONFIG}\" \"${ENGINE_MODEL}\"; do\n    if [ ! -f \"${ENGINE_SRC}/${file}\" ]; then\n        echo \"error: Missing bundled KataGo engine resource: ${ENGINE_SRC}/${file}\" >&2\n        exit 1\n    fi\ndone\n\nfor dylib in \"${LIBZIP_SRC}\" \"${LIBLZMA_SRC}\" \"${LIBZSTD_SRC}\"; do\n    if [ ! -f \"${dylib}\" ]; then\n        echo \"error: Missing KataGo dynamic library dependency: ${dylib}\" >&2\n        exit 1\n    fi\ndone\n\nWORK=\"$(mktemp -d)\"\ntrap \"rm -rf '${WORK}'\" EXIT\n\ncp \"${ENGINE_SRC}/${ENGINE_BINARY}\" \"${WORK}/${ENGINE_BINARY}\"\ncp -L \"${LIBZIP_SRC}\" \"${WORK}/libzip.5.dylib\"\ncp -L \"${LIBLZMA_SRC}\" \"${WORK}/liblzma.5.dylib\"\ncp -L \"${LIBZSTD_SRC}\" \"${WORK}/libzstd.1.dylib\"\n\nchmod u+w \"${WORK}/${ENGINE_BINARY}\" \"${WORK}/libzip.5.dylib\" \"${WORK}/liblzma.5.dylib\" \"${WORK}/libzstd.1.dylib\"\n\ninstall_name_tool -change \"${LIBZIP_SRC}\" \"@loader_path/libzip.5.dylib\" \"${WORK}/${ENGINE_BINARY}\"\ninstall_name_tool -id \"@loader_path/libzip.5.dylib\" \"${WORK}/libzip.5.dylib\"\ninstall_name_tool -change \"${LIBLZMA_SRC}\" \"@loader_path/liblzma.5.dylib\" \"${WORK}/libzip.5.dylib\"\ninstall_name_tool -change \"${LIBZSTD_SRC}\" \"@loader_path/libzstd.1.dylib\" \"${WORK}/libzip.5.dylib\"\ninstall_name_tool -id \"@loader_path/liblzma.5.dylib\" \"${WORK}/liblzma.5.dylib\"\ninstall_name_tool -id \"@loader_path/libzstd.1.dylib\" \"${WORK}/libzstd.1.dylib\"\n\ncodesign --force --sign - \"${WORK}/${ENGINE_BINARY}\" \"${WORK}/libzip.5.dylib\" \"${WORK}/liblzma.5.dylib\" \"${WORK}/libzstd.1.dylib\"\n\nmkdir -p \"${ENGINE_DST}\"\nrm -f \"${ENGINE_DST}/${ENGINE_BINARY}\" \"${ENGINE_DST}/${ENGINE_CONFIG}\" \"${ENGINE_DST}/${ENGINE_MODEL}\" \\\n      \"${ENGINE_DST}/libzip.5.dylib\" \"${ENGINE_DST}/liblzma.5.dylib\" \"${ENGINE_DST}/libzstd.1.dylib\"\n\nmv \"${WORK}/${ENGINE_BINARY}\" \"${ENGINE_DST}/\"\nmv \"${WORK}/libzip.5.dylib\" \"${ENGINE_DST}/\"\nmv \"${WORK}/liblzma.5.dylib\" \"${ENGINE_DST}/\"\nmv \"${WORK}/libzstd.1.dylib\" \"${ENGINE_DST}/\"\n\ncp \"${ENGINE_SRC}/${ENGINE_CONFIG}\" \"${ENGINE_DST}/\"\ncp \"${ENGINE_SRC}/${ENGINE_MODEL}\" \"${ENGINE_DST}/\"\n\nchmod 755 \"${ENGINE_DST}/${ENGINE_BINARY}\" \"${ENGINE_DST}/libzip.5.dylib\" \"${ENGINE_DST}/liblzma.5.dylib\" \"${ENGINE_DST}/libzstd.1.dylib\"\nchmod 644 \"${ENGINE_DST}/${ENGINE_CONFIG}\" \"${ENGINE_DST}/${ENGINE_MODEL}\"\n\necho \"Bundled KataGo Metal engine resources in ${ENGINE_DST}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		CC301AAB2FB8DA9D00B5657F /* Sources */ = {
@@ -170,7 +205,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.4;
+				MACOSX_DEPLOYMENT_TARGET = 26.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -227,7 +262,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
-				MACOSX_DEPLOYMENT_TARGET = 26.4;
+				MACOSX_DEPLOYMENT_TARGET = 26.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -238,6 +273,8 @@
 		CC301ABB2FB8DA9E00B5657F /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
+				OTHER_LDFLAGS = "-lgo_core";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
@@ -260,6 +297,7 @@
 					"$(PROJECT_DIR)/go-core/target/release/deps",
 					"$(PROJECT_DIR)/go-core/target/release",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 26;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = winner.KataGoGo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -277,6 +315,8 @@
 		CC301ABC2FB8DA9E00B5657F /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = arm64;
+				OTHER_LDFLAGS = "-lgo_core";
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CLANG_ENABLE_MODULES = YES;
@@ -286,6 +326,7 @@
 				ENABLE_APP_SANDBOX = NO;
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readonly;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -299,14 +340,17 @@
 					"$(PROJECT_DIR)/go-core/target/release/deps",
 					"$(PROJECT_DIR)/go-core/target/release",
 				);
+				MACOSX_DEPLOYMENT_TARGET = 26;
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = winner.KataGoGo;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				REGISTER_APP_GROUPS = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 			};

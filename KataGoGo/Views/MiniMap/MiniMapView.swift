@@ -1,41 +1,55 @@
 import SwiftUI
 struct MiniMapView: View {
-    let viewModel: GameViewModel
+    @ObservedObject var viewModel: GameViewModel
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("棋局总览")
-                .font(.system(.headline, design: .rounded, weight: .semibold))
-                .foregroundStyle(AppTheme.text)
-            MiniMapCanvas(viewModel: viewModel)
-                .frame(width: 176, height: 176)
+            PanelHeader(title: "对局概览", trailingSystemImage: nil)
+            MiniMapCanvas(viewModel: viewModel, boardVersion: viewModel.boardVersion)
+                .frame(maxWidth: .infinity)
+                .aspectRatio(1, contentMode: .fit)
                 .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 7, style: .continuous)
-                        .stroke(AppTheme.hairline, lineWidth: 1)
+                        .stroke(viewModel.showsMoveLabelsOnMainBoard ? AppTheme.teal.opacity(0.78) : AppTheme.hairline, lineWidth: viewModel.showsMoveLabelsOnMainBoard ? 1.5 : 1)
                 )
                 .shadow(color: .black.opacity(0.08), radius: 8, x: 0, y: 4)
-            HStack {
-                MetricRow(title: "手数", value: "\(viewModel.moveCount)")
-                Divider().frame(height: 18)
-                MetricRow(title: "提子", value: "\(viewModel.capturesBlack):\(viewModel.capturesWhite)")
+
+            VStack(spacing: 0) {
+                HStack {
+                    Text("对局类型")
+                    Spacer()
+                    Text("贴目对局（7.5目）")
+                        .fontWeight(.semibold)
+                }
+                .padding(.bottom, 8)
+
+                Divider()
+
+                HStack {
+                    SummaryMetric(title: "当前步数", value: "\(viewModel.moveCount)")
+                    Divider().frame(height: 34)
+                    SummaryMetric(title: "总用时", value: viewModel.totalElapsedText)
+                }
+                .padding(.top, 8)
             }
+            .font(.footnote)
+            .foregroundStyle(AppTheme.secondaryText)
         }
-        .padding(14)
+        .padding(AppTheme.Metrics.panelPadding)
         .panelStyle()
     }
 }
 
 struct MoveTimelineView: View {
-    let viewModel: GameViewModel
+    @ObservedObject var viewModel: GameViewModel
     
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("落子记录")
-                .font(.system(.headline, design: .rounded, weight: .semibold))
-                .foregroundStyle(AppTheme.text)
+            PanelHeader(title: viewModel.isReviewMode ? "复盘 · 第\(viewModel.replayTargetMove)/\(viewModel.totalRecordedMoves)手" : "落子记录")
+
             if viewModel.moveLabels.isEmpty {
                 Text("开局后将在这里显示最近落点。")
-                    .font(.caption)
+                    .font(.footnote)
                     .foregroundStyle(AppTheme.secondaryText)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.vertical, 6)
@@ -43,29 +57,65 @@ struct MoveTimelineView: View {
                 ScrollView(.vertical) {
                     LazyVStack(spacing: 2) {
                         ForEach(allMoves, id: \.moveNumber) { move in
-                            HStack(spacing: 8) {
-                                Text("\(move.moveNumber)")
-                                    .font(.caption.monospacedDigit())
-                                    .foregroundStyle(AppTheme.secondaryText)
-                                    .frame(width: 32, alignment: .leading)
-                                Text(vertex(col: move.col, row: move.row))
-                                    .font(.system(.subheadline, design: .rounded, weight: .semibold))
-                                    .foregroundStyle(AppTheme.text)
-                                Spacer()
+                            Button {
+                                viewModel.jumpToMove(move.moveNumber)
+                            } label: {
+                                HStack(spacing: 8) {
+                                    Text("\(move.moveNumber)")
+                                        .font(.caption.monospacedDigit())
+                                        .foregroundStyle(AppTheme.secondaryText)
+                                        .frame(width: 34, alignment: .leading)
+                                    StoneToken(isBlack: move.moveNumber % 2 == 1, size: 15)
+                                    Text(vertex(col: move.col, row: move.row))
+                                        .font(.subheadline.weight(.semibold))
+                                        .foregroundStyle(AppTheme.text)
+                                    Spacer()
+                                    if viewModel.isReviewMode, let snapshot = reviewSnapshot(for: move.moveNumber) {
+                                        Text(String(format: "%.1f%%", snapshot.winrateBlack * 100))
+                                            .font(.caption.monospacedDigit())
+                                            .foregroundStyle(snapshot.winrateBlack >= 0.5 ? AppTheme.tealDark : AppTheme.warning)
+                                    } else {
+                                        Text(moveTime(for: move.moveNumber))
+                                            .font(.caption.monospacedDigit())
+                                            .foregroundStyle(AppTheme.tertiaryText)
+                                    }
+                                }
+                                .padding(.vertical, 4)
+                                .padding(.horizontal, 6)
+                                .background(rowHighlight(for: move.moveNumber))
+                                .clipShape(RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous))
                             }
-                            .padding(.vertical, 4)
-                            .padding(.horizontal, 6)
-                            .background(move.moveNumber == viewModel.moveCount ? AppTheme.tealSoft.opacity(0.45) : Color.clear)
-                            .clipShape(RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous))
+                            .buttonStyle(.plain)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: AppTheme.controlRadius, style: .continuous)
+                                    .stroke(rowHighlightStroke(for: move.moveNumber), lineWidth: 1)
+                            )
                         }
                     }
                 }
-                .frame(minHeight: 120, idealHeight: 190, maxHeight: 260)
-                .scrollIndicators(.visible)
+                .frame(minHeight: 120, idealHeight: 190, maxHeight: viewModel.isReviewMode ? 200 : 260)
             }
         }
-        .padding(14)
+        .padding(AppTheme.Metrics.panelPadding)
         .panelStyle()
+    }
+
+    private func rowHighlight(for moveNumber: Int) -> Color {
+        if viewModel.isReviewMode {
+            return moveNumber == viewModel.replayTargetMove ? AppTheme.tealSoft.opacity(0.72) : Color.clear
+        }
+        return moveNumber == viewModel.moveCount ? AppTheme.tealSoft.opacity(0.72) : Color.clear
+    }
+
+    private func rowHighlightStroke(for moveNumber: Int) -> Color {
+        let isActive = viewModel.isReviewMode
+            ? moveNumber == viewModel.replayTargetMove
+            : moveNumber == viewModel.moveCount
+        return isActive ? AppTheme.teal.opacity(0.75) : Color.clear
+    }
+
+    private func reviewSnapshot(for moveNumber: Int) -> MoveAnalysisSnapshot? {
+        viewModel.moveAnalysisHistory.last { $0.moveNumber <= moveNumber }
     }
     
     private var allMoves: [(col: Int, row: Int, moveNumber: Int)] {
@@ -77,9 +127,73 @@ struct MoveTimelineView: View {
         guard col >= 0, col < columns.count else { return "-" }
         return "\(columns[col])\(19 - row)"
     }
+
+    private func moveTime(for moveNumber: Int) -> String {
+        viewModel.moveElapsedText(for: moveNumber)
+    }
 }
+
+struct CaptureStatsView: View {
+    @ObservedObject var viewModel: GameViewModel
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            PanelHeader(title: "提子统计", trailingSystemImage: nil)
+
+            HStack(spacing: 14) {
+                CaptureNumber(title: "黑方提子", count: viewModel.capturesBlack, isBlack: true)
+                Divider().frame(height: 42)
+                CaptureNumber(title: "白方提子", count: viewModel.capturesWhite, isBlack: false)
+            }
+        }
+        .padding(AppTheme.Metrics.panelPadding)
+        .panelStyle()
+    }
+}
+
+private struct CaptureNumber: View {
+    let title: String
+    let count: Int
+    let isBlack: Bool
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 7) {
+            HStack(spacing: 6) {
+                StoneToken(isBlack: isBlack, size: 14)
+                Text(title)
+                    .font(.footnote)
+                    .foregroundStyle(AppTheme.secondaryText)
+            }
+            Text("\(count)")
+                .font(.title2.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(AppTheme.text)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+private struct SummaryMetric: View {
+    let title: String
+    let value: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(title)
+                .foregroundStyle(AppTheme.secondaryText)
+            Text(value)
+                .font(.subheadline.weight(.semibold))
+                .monospacedDigit()
+                .foregroundStyle(AppTheme.text)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
 struct MiniMapCanvas: NSViewRepresentable {
     let viewModel: GameViewModel
+    let boardVersion: Int
+
     func makeNSView(context: Context) -> MiniMapNSView { MiniMapNSView() }
     func updateNSView(_ n: MiniMapNSView, context: Context) { n.viewModel = viewModel; n.needsDisplay = true }
 }
@@ -90,6 +204,15 @@ class MiniMapNSView: NSView {
         guard let ctx = NSGraphicsContext.current?.cgContext, let vm = viewModel else { return }
         var stones: [(Int, Int, Bool)] = []
         for r in 0..<19 { for c in 0..<19 { if let b = vm.board[r][c] { stones.append((c, r, b)) } } }
-        self.r.drawBoard(context: ctx, size: bounds.size, stones: stones, lastMove: nil, moveLabels: vm.moveLabels, showCoordinates: false, miniMap: true)
+        self.r.drawBoard(context: ctx, size: bounds.size, stones: stones, lastMove: nil, showCoordinates: false, miniMap: true)
+    }
+
+    override func mouseDown(with event: NSEvent) {
+        viewModel?.showsMoveLabelsOnMainBoard.toggle()
+        needsDisplay = true
+    }
+
+    override func resetCursorRects() {
+        addCursorRect(bounds, cursor: .pointingHand)
     }
 }

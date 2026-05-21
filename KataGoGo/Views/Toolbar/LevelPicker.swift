@@ -1,15 +1,37 @@
 import SwiftUI
-struct LevelPicker: View {
-    let viewModel: GameViewModel
-    let levels = [(0,"9级"),(1,"7k~8k"),(2,"4k~6k"),(3,"1k~3k"),(4,"1d~3d"),(5,"4d~6d"),(6,"7d+")]
-    @State private var selectedLevel: Int = 4
+struct HandicapPicker: View {
+    @ObservedObject var viewModel: GameViewModel
+    private let options = [0, 2, 3, 4, 5, 6, 7, 8, 9]
+    var compact: Bool = false
+
     var body: some View {
-        Picker("AI 棋力", selection: $selectedLevel) {
-            ForEach(levels, id: \.0) { i, l in Text(l).tag(i) }
+        Menu {
+            ForEach(options, id: \.self) { count in
+                Button {
+                    viewModel.setHandicapCount(count)
+                } label: {
+                    if viewModel.handicapCount == count {
+                        Label(label(for: count), systemImage: "checkmark")
+                    } else {
+                        Text(label(for: count))
+                    }
+                }
+                .disabled(!viewModel.canChooseHandicap)
+            }
+        } label: {
+            if compact {
+                Text(label(for: viewModel.handicapCount))
+            } else {
+                Label(label(for: viewModel.handicapCount), systemImage: "circle.grid.cross")
+            }
         }
-        .pickerStyle(.menu)
-        .frame(width: 132)
-        .font(.system(.subheadline, design: .rounded, weight: .medium))
-        .onChange(of: selectedLevel) { _, n in viewModel.setLevel(n) }
+        .help(viewModel.canChooseHandicap ? "选择让子数" : "开局后不能更改让子")
+        .foregroundStyle(AppTheme.text)
+        .frame(minWidth: compact ? 48 : 78, idealWidth: compact ? 56 : 94, minHeight: AppTheme.Metrics.controlHeight)
+        .font(.body.weight(.medium))
+    }
+
+    private func label(for count: Int) -> String {
+        count == 0 ? "不让子" : "让 \(count) 子"
     }
 }

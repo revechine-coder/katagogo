@@ -1,6 +1,11 @@
 import SwiftUI
 struct BoardCanvas: NSViewRepresentable {
     let viewModel: GameViewModel
+    let boardVersion: Int
+    let suggestionCount: Int
+    let showsLabels: Bool
+    let territoryCount: Int
+
     func makeNSView(context: Context) -> BoardNSView { BoardNSView() }
     func updateNSView(_ nsView: BoardNSView, context: Context) {
         nsView.viewModel = viewModel; nsView.needsDisplay = true
@@ -14,7 +19,16 @@ class BoardNSView: NSView {
         guard let ctx = NSGraphicsContext.current?.cgContext, let vm = viewModel else { return }
         var stones: [(Int, Int, Bool)] = []
         for r in 0..<19 { for c in 0..<19 { if let b = vm.board[r][c] { stones.append((c, r, b)) } } }
-        renderer.drawBoard(context: ctx, size: bounds.size, stones: stones, lastMove: vm.lastMove)
+        renderer.drawBoard(
+            context: ctx,
+            size: bounds.size,
+            stones: stones,
+            lastMove: vm.lastMove,
+            moveLabels: vm.showsMoveLabelsOnMainBoard ? vm.moveLabels : [],
+            showCoordinates: vm.showsMoveLabelsOnMainBoard,
+            suggestions: vm.isShowingSuggestions ? vm.moveSuggestions : [],
+            territory: vm.territory
+        )
     }
     
     override func mouseDown(with event: NSEvent) {
@@ -22,7 +36,7 @@ class BoardNSView: NSView {
         let p = convert(event.locationInWindow, from: nil)
         let side = min(bounds.width, bounds.height)
         let origin = CGPoint(x: (bounds.width - side) / 2, y: (bounds.height - side) / 2)
-        let pad = side * 0.065
+        let pad = side * 0.058
         let gridSize = (side - 2 * pad) / 18
         let boardMinX = origin.x + pad
         let boardMinY = origin.y + pad
@@ -43,4 +57,19 @@ class BoardNSView: NSView {
     }
     
     override var acceptsFirstResponder: Bool { true }
+
+    override func keyDown(with event: NSEvent) {
+        guard let vm = viewModel, vm.isReviewMode else {
+            super.keyDown(with: event)
+            return
+        }
+        switch Int(event.keyCode) {
+        case 123: // Left arrow
+            vm.stepBackward()
+        case 124: // Right arrow
+            vm.stepForward()
+        default:
+            super.keyDown(with: event)
+        }
+    }
 }

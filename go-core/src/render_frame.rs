@@ -30,6 +30,17 @@ pub struct MoveLabel {
     pub is_last: u8, // 0 or 1
 }
 
+#[derive(Debug, Clone)]
+#[repr(C)]
+pub struct MoveSuggestion {
+    pub col: u8,
+    pub row: u8,
+    pub winrate: f64,
+    pub lead: f64,
+    pub visits: u32,
+    pub order: u32,
+}
+
 pub struct BoardRenderer;
 
 impl BoardRenderer {
@@ -86,9 +97,15 @@ impl BoardRenderer {
         }
 
         let star_points = vec![
-            (3, 3), (3, 9), (3, 15),
-            (9, 3), (9, 9), (9, 15),
-            (15, 3), (15, 9), (15, 15),
+            (3, 3),
+            (3, 9),
+            (3, 15),
+            (9, 3),
+            (9, 9),
+            (9, 15),
+            (15, 3),
+            (15, 9),
+            (15, 15),
         ];
 
         RenderFrame {

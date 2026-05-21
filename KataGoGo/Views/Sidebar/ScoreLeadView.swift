@@ -1,37 +1,56 @@
 import SwiftUI
 struct ScoreLeadView: View {
-    let lead: Double
+    let leadBlack: Double
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text("目差形势")
-                    .font(.caption)
+                Text("目差")
+                    .font(.footnote)
                     .foregroundStyle(AppTheme.secondaryText)
                 Spacer()
-                Text(lt)
-                    .font(.system(.title3, design: .rounded, weight: .semibold))
+                Text(leadText)
+                    .font(.title3.weight(.semibold))
                     .monospacedDigit()
                     .foregroundStyle(AppTheme.text)
             }
             GeometryReader { g in
                 ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 5).fill(Color.white).frame(height: 24)
-                    let clamped = max(-20, min(20, lead)), fw = ((clamped+20)/40)*g.size.width
+                    RoundedRectangle(cornerRadius: 4).fill(AppTheme.controlTrack).frame(height: AppTheme.Metrics.chartHeight)
+                    let clamped = max(-30, min(30, leadBlack))
+                    let center = g.size.width / 2
+                    let width = min(center, abs(clamped) / 30 * center)
+                    let startX = clamped >= 0 ? center - width : center
                     RoundedRectangle(cornerRadius: 5)
-                        .fill(LinearGradient(colors: [.black, AppTheme.teal, .white], startPoint: .leading, endPoint: .trailing))
-                        .frame(width: max(0, fw), height: 24)
-                    Rectangle().fill(AppTheme.teal.opacity(0.55)).frame(width: 1, height: 24).position(x: g.size.width/2, y: 12)
-                    Text("黑优").font(.caption2).foregroundColor(.white).position(x: 18, y: 12)
-                    Text("白优").font(.caption2).foregroundColor(.black.opacity(0.72)).position(x: g.size.width-18, y: 12)
+                        .fill(clamped >= 0 ? Color.black.opacity(0.82) : Color.white.opacity(0.85))
+                        .frame(width: width, height: AppTheme.Metrics.chartHeight)
+                        .position(x: startX + width / 2, y: AppTheme.Metrics.chartHeight / 2)
+                    Rectangle().fill(Color.white.opacity(0.60)).frame(width: 1, height: AppTheme.Metrics.chartHeight).position(x: g.size.width/2, y: AppTheme.Metrics.chartHeight / 2)
+                    Text("黑棋").font(.caption).foregroundColor(.white).position(x: 18, y: AppTheme.Metrics.chartHeight / 2)
+                    Text("白棋").font(.caption).foregroundColor(.black.opacity(0.72)).position(x: g.size.width-24, y: AppTheme.Metrics.chartHeight / 2)
                 }
-            }.frame(height: 20)
+            }.frame(height: AppTheme.Metrics.chartHeight)
+            HStack {
+                Text("黑棋")
+                Spacer()
+                Text(centerText)
+                Spacer()
+                Text("白棋")
+            }
+            .font(.caption)
+            .foregroundStyle(AppTheme.secondaryText)
         }
-        .padding(14)
+        .padding(AppTheme.Metrics.panelPadding)
         .panelStyle()
     }
-    private var lt: String {
-        let a = abs(lead)
-        if a < 0.1 { return "双方均势" }
-        return lead > 0 ? "黑+\(String(format: "%.1f", a))目" : "白+\(String(format: "%.1f", a))目"
+
+    private var leadText: String {
+        guard leadBlack.isFinite else { return "暂无目差信息" }
+        return String(format: "黑棋 %+.1f / 白棋 %+.1f", leadBlack, -leadBlack)
+    }
+
+    private var centerText: String {
+        guard leadBlack.isFinite else { return "无数据" }
+        return String(format: "黑棋 %+.1f 目", leadBlack)
     }
 }

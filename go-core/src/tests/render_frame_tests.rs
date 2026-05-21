@@ -26,6 +26,7 @@ fn test_with_moves() {
         captured: vec![],
         winrate: None,
         lead: None,
+        evaluation_accuracy: None,
     });
     let renderer = BoardRenderer::new();
     let frame = renderer.render(&gs, mh.all_records());
@@ -47,6 +48,7 @@ fn test_pass_not_in_labels() {
         captured: vec![],
         winrate: None,
         lead: None,
+        evaluation_accuracy: None,
     });
     gs.record_move(Color::White, "pass").unwrap();
     mh.push(MoveRecord {
@@ -56,8 +58,25 @@ fn test_pass_not_in_labels() {
         captured: vec![],
         winrate: None,
         lead: None,
+        evaluation_accuracy: None,
     });
     let renderer = BoardRenderer::new();
     let frame = renderer.render(&gs, mh.all_records());
     assert_eq!(frame.move_labels.len(), 1); // only D4, not pass
+}
+
+#[test]
+fn test_setup_stones_render_without_move_labels() {
+    let mut gs = GameState::new(19);
+    let mh = MoveHistory::new();
+    gs.set_setup_stones(Color::Black, &["D4", "Q16"]).unwrap();
+
+    let renderer = BoardRenderer::new();
+    let frame = renderer.render(&gs, mh.all_records());
+
+    assert_eq!(frame.stones.len(), 2);
+    assert!(frame.move_labels.is_empty());
+    assert!(frame.last_move.is_none());
+    assert_eq!(frame.move_count, 0);
+    assert_eq!(frame.current_player, "w");
 }

@@ -23,6 +23,15 @@ struct MoveLabel {
     let is_last: UInt8  // 0 or 1
 }
 
+struct MoveSuggestion {
+    let col: UInt8
+    let row: UInt8
+    let winrate: Double
+    let lead: Double
+    let visits: UInt32
+    let order: UInt32
+}
+
 // ── C function declarations ─────────────────────────────────
 
 let RUST_LIB = "go_core"
@@ -57,7 +66,7 @@ func c_go_core_genmove(
     _ out_vertex: UnsafeMutablePointer<CChar>,
     _ out_vertex_len: Int32,
     _ out_winrate: UnsafeMutablePointer<Double>,
-    _ out_lead: UnsafeMutablePointer<Double>
+    _ out_lead_black: UnsafeMutablePointer<Double>
 ) -> Int32
 
 @_silgen_name("go_core_undo")
@@ -66,8 +75,22 @@ func c_go_core_undo() -> Int32
 @_silgen_name("go_core_reset")
 func c_go_core_reset() -> Int32
 
+@_silgen_name("go_core_final_score")
+func c_go_core_final_score(
+    _ out_score: UnsafeMutablePointer<CChar>,
+    _ out_score_len: Int32
+) -> Int32
+
 @_silgen_name("go_core_set_level")
 func c_go_core_set_level(_ level: Int32) -> Int32
+
+@_silgen_name("go_core_set_handicap")
+func c_go_core_set_handicap(_ count: Int32) -> Int32
+@_silgen_name("go_core_set_suggestions_enabled")
+func c_go_core_set_suggestions_enabled(_ enabled: Int32) -> Int32
+
+@_silgen_name("go_core_refresh_move_suggestions")
+func c_go_core_refresh_move_suggestions() -> Int32
 
 @_silgen_name("go_core_get_render_frame")
 func c_go_core_get_render_frame(
@@ -93,7 +116,21 @@ func c_go_core_get_analysis(
     _ out_current_player: UnsafeMutablePointer<CChar>,
     _ out_current_player_len: Int32,
     _ out_captures_black: UnsafeMutablePointer<Int32>,
-    _ out_captures_white: UnsafeMutablePointer<Int32>
+    _ out_captures_white: UnsafeMutablePointer<Int32>,
+    _ out_evaluation_accuracy: UnsafeMutablePointer<Double>
+) -> Int32
+
+@_silgen_name("go_core_get_move_suggestions")
+func c_go_core_get_move_suggestions(
+    _ out_suggestions: UnsafeMutablePointer<MoveSuggestion>,
+    _ out_max: Int32,
+    _ out_num: UnsafeMutablePointer<Int32>
+) -> Int32
+
+@_silgen_name("go_core_get_ownership")
+func c_go_core_get_ownership(
+    _ out_ownership: UnsafeMutablePointer<Double>,
+    _ out_max: Int32
 ) -> Int32
 
 @_silgen_name("go_core_last_error")
@@ -114,7 +151,8 @@ struct RenderFrame {
 
 struct AnalysisData {
     let winrateBlack: Double
-    let lead: Double
+    let leadBlack: Double
+    let evaluationAccuracy: Double
     let moveCount: Int
     let currentPlayer: String
     let capturesBlack: Int
@@ -151,7 +189,7 @@ final class GoCoreBridge {
 
     func destroy() {
         if initialized {
-            c_go_core_destroy()
+            _ = c_go_core_destroy()
             initialized = false
         }
     }
@@ -181,7 +219,7 @@ final class GoCoreBridge {
 
     func close() {
         if initialized {
-            c_go_core_close()
+            _ = c_go_core_close()
         }
     }
 
@@ -198,7 +236,7 @@ final class GoCoreBridge {
         }
     }
 
-    func genmove(color: String) throws -> (vertex: String, winrate: Double, lead: Double) {
+    func genmove(color: String) throws -> (vertex: String, winrateBlack: Double, leadBlack: Double) {
         var outVertex = [CChar](repeating: 0, count: 32)
         var outWinrate: Double = 0
         var outLead: Double = 0
@@ -226,10 +264,32 @@ final class GoCoreBridge {
         }
     }
 
+    func finalScore() throws -> String {
+        var outScore = [CChar](repeating: 0, count: 128)
+        let result = c_go_core_final_score(&outScore, Int32(outScore.count))
+        if result != 0 {
+            throw GoCoreError.commandFailed(lastError)
+        }
+        return String(cString: outScore)
+    }
+
     // ── Settings ────────────────────────────────────────
 
-    func setLevel(_ level: Int) {
-        c_go_core_set_level(Int32(level))
+    func setHandicap(_ count: Int) throws {
+        let result = c_go_core_set_handicap(Int32(count))
+        if result != 0 {
+            throw GoCoreError.commandFailed(lastError)
+        }
+    }
+
+    func setSuggestionsEnabled(_ enabled: Bool) {
+        _ = c_go_core_set_suggestions_enabled(enabled ? 1 : 0)
+    }
+
+    func refreshMoveSuggestions() -> [(col: Int, row: Int, winrate: Double, order: Int)] {
+        let result = c_go_core_refresh_move_suggestions()
+        guard result == 0 else { return [] }
+        return getMoveSuggestions()
     }
 
     // ── Render Frame ────────────────────────────────────
@@ -280,29 +340,59 @@ final class GoCoreBridge {
     // ── Analysis ────────────────────────────────────────
 
     func getAnalysis() -> AnalysisData? {
-        var winrate: Double = 0
-        var lead: Double = 0
+        var winrateBlack: Double = 0
+        var leadBlack: Double = 0
         var moveCount: Int32 = 0
         var currentPlayer = [CChar](repeating: 0, count: 4)
         var capturesBlack: Int32 = 0
         var capturesWhite: Int32 = 0
+        var evaluationAccuracy: Double = 0
 
         let result = c_go_core_get_analysis(
-            &winrate, &lead, &moveCount,
+            &winrateBlack, &leadBlack, &moveCount,
             &currentPlayer, 4,
-            &capturesBlack, &capturesWhite
+            &capturesBlack, &capturesWhite,
+            &evaluationAccuracy
         )
 
         guard result == 0 else { return nil }
 
         return AnalysisData(
-            winrateBlack: winrate,
-            lead: lead,
+            winrateBlack: winrateBlack,
+            leadBlack: leadBlack,
+            evaluationAccuracy: evaluationAccuracy,
             moveCount: Int(moveCount),
             currentPlayer: String(cString: currentPlayer),
             capturesBlack: Int(capturesBlack),
             capturesWhite: Int(capturesWhite)
         )
+    }
+
+    // ── Ownership ──────────────────────────────────────
+
+    func getOwnership() -> [Double] {
+        var ownership = [Double](repeating: 0, count: 361)
+        let num = c_go_core_get_ownership(&ownership, 361)
+        guard num > 0 else { return [] }
+        return Array(ownership.prefix(Int(num)))
+    }
+
+    // ── Move Suggestions ────────────────────────────────
+
+    func getMoveSuggestions() -> [(col: Int, row: Int, winrate: Double, order: Int)] {
+        let maxSuggestions = 10
+        var suggestions = [MoveSuggestion](repeating: MoveSuggestion(col: 0, row: 0, winrate: 0, lead: 0, visits: 0, order: 0), count: maxSuggestions)
+        var num: Int32 = 0
+
+        let result = c_go_core_get_move_suggestions(&suggestions, Int32(maxSuggestions), &num)
+        guard result == 0 else { return [] }
+
+        return (0..<Int(num)).map { i in
+            (col: Int(suggestions[i].col),
+             row: Int(suggestions[i].row),
+             winrate: suggestions[i].winrate,
+             order: Int(suggestions[i].order))
+        }
     }
 
     // ── Error ───────────────────────────────────────────

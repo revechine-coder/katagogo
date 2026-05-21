@@ -11,9 +11,7 @@ impl Color {
         match s.trim().to_lowercase().as_str() {
             "b" | "black" => Ok(Color::Black),
             "w" | "white" => Ok(Color::White),
-            _ => Err(GoCoreError::InvalidArgument(format!(
-                "invalid color: {s}"
-            ))),
+            _ => Err(GoCoreError::InvalidArgument(format!("invalid color: {s}"))),
         }
     }
 
@@ -56,21 +54,19 @@ impl Vertex {
         let cols = b"ABCDEFGHJKLMNOPQRST";
         let bytes = s.as_bytes();
         if bytes.is_empty() || bytes.len() < 2 {
-            return Err(GoCoreError::InvalidArgument(format!(
-                "invalid vertex: {s}"
-            )));
+            return Err(GoCoreError::InvalidArgument(format!("invalid vertex: {s}")));
         }
         let col_char = bytes[0];
         let col = cols.iter().position(|&c| c == col_char).ok_or_else(|| {
             GoCoreError::InvalidArgument(format!("invalid column: {}", col_char as char))
         })? as u8;
         let row_str = &s[1..];
-        let row_num: u8 = row_str.parse().map_err(|_| {
-            GoCoreError::InvalidArgument(format!("invalid row: {row_str}"))
-        })?;
-        let row = board_size.checked_sub(row_num).ok_or_else(|| {
-            GoCoreError::InvalidArgument(format!("row out of range: {row_num}"))
-        })?;
+        let row_num: u8 = row_str
+            .parse()
+            .map_err(|_| GoCoreError::InvalidArgument(format!("invalid row: {row_str}")))?;
+        let row = board_size
+            .checked_sub(row_num)
+            .ok_or_else(|| GoCoreError::InvalidArgument(format!("row out of range: {row_num}")))?;
         if col >= board_size || row >= board_size {
             return Err(GoCoreError::InvalidArgument(format!(
                 "vertex outside board: {s} (board size {board_size})"
@@ -95,6 +91,7 @@ pub struct MoveRecord {
     pub captured: Vec<String>,
     pub winrate: Option<f64>,
     pub lead: Option<f64>,
+    pub evaluation_accuracy: Option<f64>,
 }
 
 #[derive(Debug, Clone)]
@@ -154,6 +151,7 @@ impl GameState {
                 captured: vec![],
                 winrate: None,
                 lead: None,
+                evaluation_accuracy: None,
             });
         }
 
@@ -167,6 +165,36 @@ impl GameState {
         }
 
         self.stones[v.row as usize][v.col as usize] = Some(color);
+        let mut captured_vertices = Vec::new();
+
+        for neighbor in self.neighbors(v) {
+            if self.stone_at(neighbor.col, neighbor.row) != Some(color.opponent()) {
+                continue;
+            }
+            let group = self.group_at(neighbor);
+            if !self.group_has_liberty(&group) {
+                for stone in group {
+                    self.stones[stone.row as usize][stone.col as usize] = None;
+                    captured_vertices.push(stone.to_string(self.board_size));
+                }
+            }
+        }
+
+        let own_group = self.group_at(v);
+        if captured_vertices.is_empty() && !self.group_has_liberty(&own_group) {
+            self.stones[v.row as usize][v.col as usize] = None;
+            return Err(GoCoreError::InvalidArgument(format!(
+                "suicide move: {}",
+                v.to_string(self.board_size)
+            )));
+        }
+
+        if color == Color::Black {
+            self.captures_black += captured_vertices.len() as u32;
+        } else {
+            self.captures_white += captured_vertices.len() as u32;
+        }
+
         self.move_count += 1;
         self.current_player = color.opponent();
 
@@ -174,10 +202,37 @@ impl GameState {
             move_number: self.move_count,
             color,
             vertex: v.to_string(self.board_size),
-            captured: vec![],
+            captured: captured_vertices,
             winrate: None,
             lead: None,
+            evaluation_accuracy: None,
         })
+    }
+
+    pub fn set_setup_stones(&mut self, color: Color, vertices: &[&str]) -> Result<()> {
+        let size = self.board_size as usize;
+        self.stones = vec![vec![None; size]; size];
+        self.move_count = 0;
+        self.captures_black = 0;
+        self.captures_white = 0;
+
+        for vertex in vertices {
+            let v = Vertex::from_coord(vertex, self.board_size)?;
+            if self.stones[v.row as usize][v.col as usize].is_some() {
+                return Err(GoCoreError::InvalidArgument(format!(
+                    "duplicate setup stone: {}",
+                    v.to_string(self.board_size)
+                )));
+            }
+            self.stones[v.row as usize][v.col as usize] = Some(color);
+        }
+
+        self.current_player = if vertices.is_empty() {
+            Color::Black
+        } else {
+            color.opponent()
+        };
+        Ok(())
     }
 
     pub fn remove_stone(&mut self, vertex: &str) {
@@ -201,5 +256,74 @@ impl GameState {
 
     pub fn captures(&self) -> (u32, u32) {
         (self.captures_black, self.captures_white)
+    }
+
+    fn neighbors(&self, v: Vertex) -> Vec<Vertex> {
+        let mut neighbors = Vec::with_capacity(4);
+        if v.col > 0 {
+            neighbors.push(Vertex {
+                col: v.col - 1,
+                row: v.row,
+            });
+        }
+        if v.col + 1 < self.board_size {
+            neighbors.push(Vertex {
+                col: v.col + 1,
+                row: v.row,
+            });
+        }
+        if v.row > 0 {
+            neighbors.push(Vertex {
+                col: v.col,
+                row: v.row - 1,
+            });
+        }
+        if v.row + 1 < self.board_size {
+            neighbors.push(Vertex {
+                col: v.col,
+                row: v.row + 1,
+            });
+        }
+        neighbors
+    }
+
+    fn group_at(&self, start: Vertex) -> Vec<Vertex> {
+        let Some(color) = self.stone_at(start.col, start.row) else {
+            return vec![];
+        };
+        let size = self.board_size as usize;
+        let mut seen = vec![vec![false; size]; size];
+        let mut stack = vec![start];
+        let mut group = Vec::new();
+
+        while let Some(v) = stack.pop() {
+            let r = v.row as usize;
+            let c = v.col as usize;
+            if seen[r][c] {
+                continue;
+            }
+            seen[r][c] = true;
+            if self.stone_at(v.col, v.row) != Some(color) {
+                continue;
+            }
+            group.push(v);
+            for neighbor in self.neighbors(v) {
+                if !seen[neighbor.row as usize][neighbor.col as usize]
+                    && self.stone_at(neighbor.col, neighbor.row) == Some(color)
+                {
+                    stack.push(neighbor);
+                }
+            }
+        }
+
+        group
+    }
+
+    fn group_has_liberty(&self, group: &[Vertex]) -> bool {
+        group.iter().any(|stone| {
+            self.neighbors(*stone)
+                .iter()
+                .any(|neighbor| self.stone_at(neighbor.col, neighbor.row).is_none())
+        })
     }
 }
