@@ -1,4 +1,5 @@
 use crate::error::{GoCoreError, Result};
+use std::str::FromStr;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Color {
@@ -7,7 +8,7 @@ pub enum Color {
 }
 
 impl Color {
-    pub fn from_str(s: &str) -> Result<Self> {
+    pub fn parse(s: &str) -> Result<Self> {
         match s.trim().to_lowercase().as_str() {
             "b" | "black" => Ok(Color::Black),
             "w" | "white" => Ok(Color::White),
@@ -34,6 +35,14 @@ impl Color {
             Color::Black => "黑棋",
             Color::White => "白棋",
         }
+    }
+}
+
+impl FromStr for Color {
+    type Err = GoCoreError;
+
+    fn from_str(s: &str) -> Result<Self> {
+        Self::parse(s)
     }
 }
 

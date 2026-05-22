@@ -38,6 +38,7 @@ struct ContentView: View {
                 centerColumn
                 VStack(spacing: 14) {
                     AnalysisPanel(viewModel: viewModel)
+                    ReviewPanel(viewModel: viewModel)
                     if viewModel.isReviewMode {
                         ReviewControlPanel(viewModel: viewModel)
                     }
@@ -71,7 +72,14 @@ struct ContentView: View {
         let shape = RoundedRectangle(cornerRadius: AppTheme.panelRadius, style: .continuous)
 
         return ZStack {
-            BoardCanvas(viewModel: viewModel, boardVersion: viewModel.boardVersion, suggestionCount: viewModel.moveSuggestions.count, showsLabels: viewModel.showsMoveLabelsOnMainBoard || viewModel.showsCoordinatesOnMainBoard, territoryCount: viewModel.territory.count)
+            BoardCanvas(
+                viewModel: viewModel,
+                renderState: viewModel.boardRenderState,
+                showsLabels: viewModel.showsMoveLabelsOnMainBoard,
+                showsCoordinates: viewModel.showsCoordinatesOnMainBoard,
+                isShowingSuggestions: viewModel.isShowingSuggestions,
+                territoryCount: viewModel.territory.count
+            )
                 .padding(AppTheme.Metrics.boardPadding)
         }
         .background(AppTheme.boardSurface, in: shape)

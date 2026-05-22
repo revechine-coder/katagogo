@@ -11,7 +11,7 @@ pub struct AnalysisData {
 
 impl AnalysisData {
     pub fn new() -> Self {
-        AnalysisData {
+        Self {
             winrate_black: 0.5,
             lead_black: 0.0,
             evaluation_accuracy: 0.0,
@@ -19,6 +19,12 @@ impl AnalysisData {
             current_player: "b".to_string(),
             move_suggestions: Vec::new(),
         }
+    }
+}
+
+impl Default for AnalysisData {
+    fn default() -> Self {
+        Self::new()
     }
 }
 

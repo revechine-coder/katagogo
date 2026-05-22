@@ -10,6 +10,66 @@ enum GamePhase {
     case finished
 }
 
+struct BoardStoneRenderState: Equatable {
+    let col: Int
+    let row: Int
+    let isBlack: Bool
+}
+
+struct BoardMoveLabelRenderState: Equatable {
+    let col: Int
+    let row: Int
+    let moveNumber: Int
+}
+
+struct BoardSuggestionRenderState: Equatable {
+    let col: Int
+    let row: Int
+    let winrate: Double
+    let lead: Double
+    let visits: Int
+    let order: Int
+}
+
+struct BoardRenderState: Equatable {
+    let boardSize: Int
+    let stones: [BoardStoneRenderState]
+    let moveLabels: [BoardMoveLabelRenderState]
+    let lastMove: (col: Int, row: Int)?
+    let suggestions: [BoardSuggestionRenderState]
+    let territory: [[Bool?]]
+
+    static let empty = BoardRenderState(
+        boardSize: 19,
+        stones: [],
+        moveLabels: [],
+        lastMove: nil,
+        suggestions: [],
+        territory: []
+    )
+
+    static func == (lhs: BoardRenderState, rhs: BoardRenderState) -> Bool {
+        lhs.boardSize == rhs.boardSize &&
+        lhs.stones == rhs.stones &&
+        lhs.moveLabels == rhs.moveLabels &&
+        lhs.lastMove?.col == rhs.lastMove?.col &&
+        lhs.lastMove?.row == rhs.lastMove?.row &&
+        lhs.suggestions == rhs.suggestions &&
+        territoriesEqual(lhs.territory, rhs.territory)
+    }
+
+    private static func territoriesEqual(_ lhs: [[Bool?]], _ rhs: [[Bool?]]) -> Bool {
+        guard lhs.count == rhs.count else { return false }
+        for (leftRow, rightRow) in zip(lhs, rhs) {
+            guard leftRow.count == rightRow.count else { return false }
+            for (left, right) in zip(leftRow, rightRow) where left != right {
+                return false
+            }
+        }
+        return true
+    }
+}
+
 final class GameViewModel: ObservableObject {
 
     @Published var phase: GamePhase = .idle
@@ -34,7 +94,7 @@ final class GameViewModel: ObservableObject {
 
     @Published var board: [[Bool?]] = Array(repeating: Array(repeating: nil, count: 19), count: 19)
     @Published var moveLabels: [(col: Int, row: Int, moveNumber: Int)] = []
-    @Published var moveSuggestions: [(col: Int, row: Int, winrate: Double, order: Int)] = []
+    @Published var moveSuggestions: [(col: Int, row: Int, winrate: Double, lead: Double, visits: Int, order: Int)] = []
     @Published var isShowingSuggestions = false
 
     var winrateWhite: Double { 1.0 - winrateBlack }
@@ -51,6 +111,9 @@ final class GameViewModel: ObservableObject {
     private var reviewMoveElapsedSnapshot: [TimeInterval] = []
     @Published var displayTick: Int = 0
     @Published var boardVersion: Int = 0
+    @Published var boardRenderState: BoardRenderState = .empty
+    @Published var autoReviewReport: AutoReviewReport? = nil
+    @Published var isScanningReview: Bool = false
 
     var totalElapsedText: String {
         _ = displayTick
@@ -87,6 +150,11 @@ final class GameViewModel: ObservableObject {
     private let columns = "ABCDEFGHJKLMNOPQRST"
 
     init() {
+        engine.onAnalysisFrame = { [weak self] snapshot in
+            DispatchQueue.main.async {
+                self?.applyAnalysisSuggestions(snapshot.suggestions)
+            }
+        }
         restorePausedSessionIfAvailable()
     }
 
@@ -244,6 +312,7 @@ final class GameViewModel: ObservableObject {
         moveElapsedAtMove.append(totalElapsedSeconds)
         phase = .waiting
         territory = []
+        syncBoardRenderStateFromPublishedState()
 
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
             guard let self = self else { return }
@@ -316,6 +385,7 @@ final class GameViewModel: ObservableObject {
                 DispatchQueue.main.async {
                     self.finalScoreText = result.displayText
                     self.territory = ownershipData
+                    self.syncBoardRenderStateFromPublishedState()
                     self.isScoringFinalResult = false
                 }
             } catch {
@@ -395,6 +465,7 @@ final class GameViewModel: ObservableObject {
     func clearTerritory() {
         territory = []
         finalScoreText = nil
+        syncBoardRenderStateFromPublishedState()
     }
 
     func setHandicapCount(_ count: Int) {
@@ -438,10 +509,12 @@ final class GameViewModel: ObservableObject {
             DispatchQueue.main.async {
                 guard self?.isShowingSuggestions == true else { return }
                 self?.moveSuggestions = suggestions
+                self?.syncBoardRenderStateFromPublishedState()
             }
         }
         if !isShowing {
             moveSuggestions = []
+            syncBoardRenderStateFromPublishedState()
         }
     }
 
@@ -452,6 +525,7 @@ final class GameViewModel: ObservableObject {
             DispatchQueue.main.async {
                 guard self?.isShowingSuggestions == true else { return }
                 self?.moveSuggestions = suggestions
+                self?.syncBoardRenderStateFromPublishedState()
             }
         }
     }
@@ -753,6 +827,57 @@ final class GameViewModel: ObservableObject {
         }
     }
 
+    func runAutoReview(visits: Int = 100) {
+        guard !isScanningReview else { return }
+        guard moveCount > 0 else { return }
+
+        isScanningReview = true
+        autoReviewReport = nil
+
+        Task.detached(priority: .userInitiated) { [weak self] in
+            guard let self = self else { return }
+
+            let success = self.engine.runAutoReview(visits: Int32(visits))
+            guard success else {
+                await MainActor.run {
+                    self.isScanningReview = false
+                    self.errorMessage = self.engine.lastError
+                }
+                return
+            }
+
+            let items = self.engine.getAutoReviewMoves()
+            let badCount = items.filter { $0.quality == .badMove }.count
+            let slackCount = items.filter { $0.quality == .slackMove }.count
+
+            let report = AutoReviewReport(
+                moves: items,
+                totalMoves: items.count,
+                badMoveCount: badCount,
+                slackMoveCount: slackCount
+            )
+
+            await MainActor.run {
+                self.autoReviewReport = report
+                self.isScanningReview = false
+            }
+        }
+    }
+
+    func clearAutoReview() {
+        autoReviewReport = nil
+    }
+
+    func didSelectReviewItem(_ item: ReviewedMoveItem) {
+        // Jump to position BEFORE the problematic move
+        let targetMove = max(0, item.moveNumber - 1)
+        jumpToMove(targetMove)
+        // Enable suggestions so the user sees AI recommendations at this position
+        if !isShowingSuggestions {
+            setShowingSuggestions(true)
+        }
+    }
+
     var maxThinkSteps: Int {
         60
     }
@@ -770,10 +895,66 @@ final class GameViewModel: ObservableObject {
     }
 
     private func refreshUI() {
-        guard let frame = engine.getRenderFrame() else { return }
+        if let snapshot = engine.getRenderFrameViewSnapshot() {
+            apply(renderFrameViewSnapshot: snapshot)
+        } else if let frame = engine.getRenderFrame() {
+            apply(renderFrame: frame)
+        } else {
+            return
+        }
 
+        if let analysis = engine.getAnalysis() {
+            winrateBlack = analysis.winrateBlack
+            leadBlack = analysis.leadBlack.isFinite ? analysis.leadBlack : 0.0
+            evaluationAccuracy = analysis.evaluationAccuracy
+            moveCount = analysis.moveCount
+            currentPlayer = analysis.currentPlayer
+            capturesBlack = analysis.capturesBlack
+            capturesWhite = analysis.capturesWhite
+        }
+
+        if moveCount > 0, moveAnalysisHistory.last?.moveNumber != moveCount {
+            moveAnalysisHistory.append(MoveAnalysisSnapshot(
+                moveNumber: moveCount,
+                winrateBlack: winrateBlack,
+                leadBlack: leadBlack,
+                evaluationAccuracy: evaluationAccuracy,
+                currentPlayer: currentPlayer
+            ))
+        }
+    }
+
+    func apply(renderFrameViewSnapshot snapshot: RenderFrameViewSnapshot) {
+        assert(Thread.isMainThread)
+        var updatedBoard = Array(repeating: Array(repeating: Optional<Bool>.none, count: snapshot.boardSize), count: snapshot.boardSize)
+        for stone in snapshot.stones where stone.row < snapshot.boardSize && stone.col < snapshot.boardSize {
+            updatedBoard[stone.row][stone.col] = stone.isBlack
+        }
+
+        board = updatedBoard
+        moveLabels = snapshot.moveLabels
+        moveCount = snapshot.moveCount
+        boardVersion &+= 1
+        currentPlayer = snapshot.currentPlayer
+        capturesBlack = snapshot.capturesBlack
+        capturesWhite = snapshot.capturesWhite
+        lastMove = snapshot.lastMove
+        moveSuggestions = snapshot.suggestions.map {
+            (col: $0.col, row: $0.row, winrate: $0.winrate, lead: $0.lead, visits: $0.visits, order: $0.order)
+        }
+        boardRenderState = makeBoardRenderState(
+            boardSize: snapshot.boardSize,
+            stones: snapshot.stones,
+            labels: snapshot.moveLabels,
+            lastMove: snapshot.lastMove,
+            suggestions: moveSuggestions
+        )
+    }
+
+    private func apply(renderFrame frame: RenderFrame) {
+        assert(Thread.isMainThread)
         var updatedBoard = Array(repeating: Array(repeating: Optional<Bool>.none, count: frame.boardSize), count: frame.boardSize)
-        for stone in frame.stones {
+        for stone in frame.stones where stone.row < frame.boardSize && stone.col < frame.boardSize {
             updatedBoard[stone.row][stone.col] = stone.isBlack
         }
 
@@ -785,27 +966,61 @@ final class GameViewModel: ObservableObject {
         capturesBlack = frame.capturesBlack
         capturesWhite = frame.capturesWhite
         lastMove = frame.lastMove
-
-        if let analysis = engine.getAnalysis() {
-            winrateBlack = analysis.winrateBlack
-            leadBlack = analysis.leadBlack.isFinite ? analysis.leadBlack : 0.0
-            evaluationAccuracy = analysis.evaluationAccuracy
-            moveCount = analysis.moveCount
-            currentPlayer = analysis.currentPlayer
-            capturesBlack = analysis.capturesBlack
-            capturesWhite = analysis.capturesWhite
-        }
         moveSuggestions = engine.getMoveSuggestions()
+        boardRenderState = makeBoardRenderState(
+            boardSize: frame.boardSize,
+            stones: frame.stones,
+            labels: frame.moveLabels,
+            lastMove: frame.lastMove,
+            suggestions: moveSuggestions
+        )
+    }
 
-        if moveCount > 0, moveAnalysisHistory.last?.moveNumber != moveCount {
-            moveAnalysisHistory.append(MoveAnalysisSnapshot(
-                moveNumber: moveCount,
-                winrateBlack: winrateBlack,
-                leadBlack: leadBlack,
-                evaluationAccuracy: evaluationAccuracy,
-                currentPlayer: currentPlayer
-            ))
+    private func makeBoardRenderState(
+        boardSize: Int,
+        stones: [(col: Int, row: Int, isBlack: Bool)],
+        labels: [(col: Int, row: Int, moveNumber: Int)],
+        lastMove: (col: Int, row: Int)?,
+        suggestions: [(col: Int, row: Int, winrate: Double, lead: Double, visits: Int, order: Int)]
+    ) -> BoardRenderState {
+        BoardRenderState(
+            boardSize: boardSize,
+            stones: stones.map {
+                BoardStoneRenderState(col: $0.col, row: $0.row, isBlack: $0.isBlack)
+            },
+            moveLabels: labels.map {
+                BoardMoveLabelRenderState(col: $0.col, row: $0.row, moveNumber: $0.moveNumber)
+            },
+            lastMove: lastMove,
+            suggestions: suggestions.map {
+                BoardSuggestionRenderState(col: $0.col, row: $0.row, winrate: $0.winrate, lead: $0.lead, visits: $0.visits, order: $0.order)
+            },
+            territory: territory
+        )
+    }
+
+    private func applyAnalysisSuggestions(_ suggestions: [(col: Int, row: Int, winrate: Double, lead: Double, visits: Int, order: Int)]) {
+        assert(Thread.isMainThread)
+        guard isShowingSuggestions || phase == .waiting else { return }
+        moveSuggestions = suggestions
+        syncBoardRenderStateFromPublishedState()
+    }
+
+    private func syncBoardRenderStateFromPublishedState() {
+        assert(Thread.isMainThread)
+        let stones = board.enumerated().flatMap { row, values in
+            values.enumerated().compactMap { col, isBlack in
+                isBlack.map { (col: col, row: row, isBlack: $0) }
+            }
         }
+        boardRenderState = makeBoardRenderState(
+            boardSize: board.count,
+            stones: stones,
+            labels: moveLabels,
+            lastMove: lastMove,
+            suggestions: moveSuggestions
+        )
+        boardVersion &+= 1
     }
 
     private func requestOpeningMove() {
@@ -872,6 +1087,7 @@ final class GameViewModel: ObservableObject {
         territory = []
         moveSuggestions = []
         isShowingSuggestions = false
+        boardRenderState = .empty
         boardVersion &+= 1
         gameStartTime = nil
         accumulatedElapsed = 0

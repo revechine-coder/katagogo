@@ -9,7 +9,7 @@ struct BoardRenderer {
                    moveLabels: [(col: Int, row: Int, moveNumber: Int)] = [],
                    showCoordinates: Bool = true,
                    miniMap: Bool = false,
-                   suggestions: [(col: Int, row: Int, winrate: Double, order: Int)] = [],
+                   suggestions: [(col: Int, row: Int, winrate: Double, lead: Double, visits: Int, order: Int)] = [],
                    territory: [[Bool?]] = []) {
         let side = min(size.width, size.height)
         let origin = CGPoint(x: (size.width - side) / 2, y: (size.height - side) / 2)
@@ -136,35 +136,41 @@ struct BoardRenderer {
         }
 
         if !suggestions.isEmpty, !miniMap {
+            let maxVisits = max(1, suggestions.map(\.visits).max() ?? 1)
+            let pulse = (sin(CGFloat(Date.timeIntervalSinceReferenceDate) * 4.8) + 1.0) * 0.5
             for sug in suggestions {
                 let cx = boardRect.minX + padding + CGFloat(sug.col) * gridSize
                 let cy = boardRect.minY + padding + CGFloat(sug.row) * gridSize
-                let markerScale: CGFloat
-                switch sug.order {
-                case 0: markerScale = 0.72
-                case 1: markerScale = 0.54
-                default: markerScale = 0.38
-                }
-                let markerRadius = stoneRadius * markerScale
-                let alpha: CGFloat = sug.order == 0 ? 0.86 : 0.68
+                let visitWeight = CGFloat(sug.visits) / CGFloat(maxVisits)
+                let baseRadius = stoneRadius * (0.58 + 0.46 * sqrt(max(0.08, visitWeight)))
+                let ringRadius = baseRadius * (1.0 + 0.10 * pulse)
+                let winrate = CGFloat(min(max(sug.winrate, 0.0), 1.0))
+                let warm = winrate < 0.5 ? (0.5 - winrate) * 2.0 : 0
+                let cool = winrate >= 0.5 ? (winrate - 0.5) * 2.0 : 0
+                let color = CGColor(
+                    red: 0.18 + 0.62 * warm,
+                    green: 0.42 + 0.18 * min(warm, cool),
+                    blue: 0.52 + 0.36 * cool,
+                    alpha: sug.order == 0 ? 0.82 : 0.60
+                )
 
-                context.setShadow(offset: CGSize(width: 0, height: 1.5), blur: 3.0, color: CGColor(red: 0, green: 0, blue: 0, alpha: 0.24))
-                context.setFillColor(CGColor(red: 0.11, green: 0.61, blue: 0.62, alpha: alpha))
-                context.fillEllipse(in: CGRect(x: cx - markerRadius, y: cy - markerRadius,
-                                               width: markerRadius * 2, height: markerRadius * 2))
+                context.setShadow(offset: CGSize(width: 0, height: 1.5), blur: 4.0, color: color.copy(alpha: 0.28))
+                context.setStrokeColor(color)
+                context.setLineWidth(max(2.0, gridSize * (0.050 + 0.020 * visitWeight)))
+                context.strokeEllipse(in: CGRect(x: cx - ringRadius, y: cy - ringRadius,
+                                                 width: ringRadius * 2, height: ringRadius * 2))
+
                 context.setShadow(offset: .zero, blur: 0, color: nil)
-
-                context.setStrokeColor(CGColor(red: 1.0, green: 1.0, blue: 0.92, alpha: 0.88))
-                context.setLineWidth(max(1.4, gridSize * 0.046))
-                context.strokeEllipse(in: CGRect(x: cx - markerRadius, y: cy - markerRadius,
-                                                 width: markerRadius * 2, height: markerRadius * 2))
+                context.setFillColor(color.copy(alpha: 0.16) ?? color)
+                let fillRadius = baseRadius * 0.62
+                context.fillEllipse(in: CGRect(x: cx - fillRadius, y: cy - fillRadius,
+                                               width: fillRadius * 2, height: fillRadius * 2))
 
                 if sug.order == 0 {
-                    let ringRadius = stoneRadius * 0.86
-                    context.setStrokeColor(CGColor(red: 0.08, green: 0.42, blue: 0.43, alpha: 0.96))
-                    context.setLineWidth(max(1.8, gridSize * 0.052))
-                    context.strokeEllipse(in: CGRect(x: cx - ringRadius, y: cy - ringRadius,
-                                                     width: ringRadius * 2, height: ringRadius * 2))
+                    context.setStrokeColor(CGColor(red: 1.0, green: 1.0, blue: 0.92, alpha: 0.78))
+                    context.setLineWidth(max(1.2, gridSize * 0.035))
+                    context.strokeEllipse(in: CGRect(x: cx - ringRadius * 0.78, y: cy - ringRadius * 0.78,
+                                                     width: ringRadius * 1.56, height: ringRadius * 1.56))
                 }
             }
         }

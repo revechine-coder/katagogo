@@ -42,11 +42,11 @@ fn test_reset() {
 
 #[test]
 fn test_color_from_str() {
-    assert_eq!(Color::from_str("b").unwrap(), Color::Black);
-    assert_eq!(Color::from_str("black").unwrap(), Color::Black);
-    assert_eq!(Color::from_str("w").unwrap(), Color::White);
-    assert_eq!(Color::from_str("white").unwrap(), Color::White);
-    assert!(Color::from_str("x").is_err());
+    assert_eq!(Color::parse("b").unwrap(), Color::Black);
+    assert_eq!(Color::parse("black").unwrap(), Color::Black);
+    assert_eq!(Color::parse("w").unwrap(), Color::White);
+    assert_eq!(Color::parse("white").unwrap(), Color::White);
+    assert!(Color::parse("x").is_err());
 }
 
 #[test]

@@ -6,7 +6,7 @@ struct MiniMapView: View {
             PanelHeader(title: "对局概览", trailingSystemImage: nil)
 
             ZStack(alignment: .topTrailing) {
-                MiniMapCanvas(viewModel: viewModel, boardVersion: viewModel.boardVersion)
+                MiniMapCanvas(viewModel: viewModel, renderState: viewModel.boardRenderState)
                     .frame(maxWidth: .infinity)
                     .aspectRatio(1, contentMode: .fit)
                     .clipShape(RoundedRectangle(cornerRadius: 7, style: .continuous))
@@ -240,19 +240,73 @@ private struct SummaryMetric: View {
 
 struct MiniMapCanvas: NSViewRepresentable {
     let viewModel: GameViewModel
-    let boardVersion: Int
+    let renderState: BoardRenderState
 
     func makeNSView(context: Context) -> MiniMapNSView { MiniMapNSView() }
-    func updateNSView(_ n: MiniMapNSView, context: Context) { n.viewModel = viewModel; n.needsDisplay = true }
+    func updateNSView(_ nsView: MiniMapNSView, context: Context) {
+        nsView.viewModel = viewModel
+        nsView.update(renderState: renderState)
+    }
 }
 class MiniMapNSView: NSView {
     weak var viewModel: GameViewModel?
+    private var renderState: BoardRenderState = .empty
     private let r = BoardRenderer(boardSize: 19)
+
+    func update(renderState newState: BoardRenderState) {
+        assert(Thread.isMainThread)
+        let oldState = renderState
+        renderState = newState
+        if oldState.boardSize != newState.boardSize || oldState.moveLabels != newState.moveLabels {
+            needsDisplay = true
+        } else {
+            markDirtyIntersections(from: oldState, to: newState)
+        }
+    }
+
     override func draw(_ d: NSRect) {
-        guard let ctx = NSGraphicsContext.current?.cgContext, let vm = viewModel else { return }
-        var stones: [(Int, Int, Bool)] = []
-        for r in 0..<19 { for c in 0..<19 { if let b = vm.board[r][c] { stones.append((c, r, b)) } } }
-        self.r.drawBoard(context: ctx, size: bounds.size, stones: stones, lastMove: nil, showCoordinates: false, miniMap: true)
+        guard let ctx = NSGraphicsContext.current?.cgContext else { return }
+        self.r.drawBoard(
+            context: ctx,
+            size: bounds.size,
+            stones: renderState.stones.map { ($0.col, $0.row, $0.isBlack) },
+            lastMove: nil,
+            moveLabels: renderState.moveLabels.map { ($0.col, $0.row, $0.moveNumber) },
+            showCoordinates: false,
+            miniMap: true
+        )
+    }
+
+    private func markDirtyIntersections(from oldState: BoardRenderState, to newState: BoardRenderState) {
+        var dirtyPoints = Set<MiniMapPointKey>()
+        let oldStones = Dictionary(uniqueKeysWithValues: oldState.stones.map { (MiniMapPointKey(col: $0.col, row: $0.row), $0.isBlack) })
+        let newStones = Dictionary(uniqueKeysWithValues: newState.stones.map { (MiniMapPointKey(col: $0.col, row: $0.row), $0.isBlack) })
+        for key in Set(oldStones.keys).union(newStones.keys) where oldStones[key] != newStones[key] {
+            dirtyPoints.insert(key)
+        }
+
+        if let lastMove = oldState.lastMove {
+            dirtyPoints.insert(MiniMapPointKey(col: lastMove.col, row: lastMove.row))
+        }
+        if let lastMove = newState.lastMove {
+            dirtyPoints.insert(MiniMapPointKey(col: lastMove.col, row: lastMove.row))
+        }
+
+        guard !dirtyPoints.isEmpty else { return }
+        for point in dirtyPoints {
+            setNeedsDisplay(intersectionRect(col: point.col, row: point.row))
+        }
+    }
+
+    private func intersectionRect(col: Int, row: Int) -> NSRect {
+        let side = min(bounds.width, bounds.height)
+        let origin = CGPoint(x: (bounds.width - side) / 2, y: (bounds.height - side) / 2)
+        let padding = max(15, side * 0.09)
+        let gridSize = (side - 2 * padding) / CGFloat(max(renderState.boardSize - 1, 1))
+        let x = origin.x + padding + CGFloat(col) * gridSize
+        let y = origin.y + padding + CGFloat(row) * gridSize
+        let radius = gridSize * 0.9
+        return NSRect(x: x - radius, y: y - radius, width: radius * 2, height: radius * 2)
     }
 
     override func mouseDown(with event: NSEvent) {
@@ -265,4 +319,9 @@ class MiniMapNSView: NSView {
     override func resetCursorRects() {
         addCursorRect(bounds, cursor: .pointingHand)
     }
+}
+
+private struct MiniMapPointKey: Hashable {
+    let col: Int
+    let row: Int
 }

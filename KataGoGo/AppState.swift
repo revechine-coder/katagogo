@@ -21,24 +21,8 @@ final class AppState: ObservableObject {
         Bundle.main.bundleURL.pathExtension == "app"
     }
 
-    private var developmentEngineRoot: String {
-        "\(NSHomeDirectory())/Documents/katagogo/kata-engine"
-    }
-
     private var defaultEngineRoot: String {
-        if let bundled = bundledEngineRootIfAvailable {
-            return bundled
-        }
-        if packagedAppRequiresBundledEngine {
-            return EngineResourceLocator.expectedBundledEngineRoot()
-        }
-        return developmentEngineRoot
-    }
-
-    private var bundledEngineRootIfAvailable: String? {
-        EngineResourceLocator.engineRootCandidates().first { root in
-            EngineResourceLocator.bundledEnginePaths(in: root) != nil
-        }
+        EngineResourceLocator.resolveEngineRoot()
     }
 
     private var defaultModelFileName: String {
@@ -164,7 +148,7 @@ final class AppState: ObservableObject {
     }
 
     private var bundledEnginePaths: (binary: String, config: String, model: String)? {
-        guard let root = bundledEngineRootIfAvailable else { return nil }
+        guard let root = EngineResourceLocator.bundledEngineRoot() else { return nil }
         return EngineResourceLocator.bundledEnginePaths(in: root)
     }
 

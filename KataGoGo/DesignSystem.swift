@@ -65,6 +65,7 @@ enum AppTheme {
     static let tealDark = Color(red: 0.08, green: 0.42, blue: 0.43)
     static let tealSoft = Color(red: 0.78, green: 0.91, blue: 0.90)
     static let warning = Color(red: 0.79, green: 0.47, blue: 0.14)
+    static let danger = Color(red: 0.88, green: 0.23, blue: 0.23)
 
     // MARK: - Physical materials (non-adaptive)
     static let woodLight = Color(red: 0.86, green: 0.67, blue: 0.42)

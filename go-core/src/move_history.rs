@@ -8,7 +8,7 @@ pub struct MoveHistory {
 
 impl MoveHistory {
     pub fn new() -> Self {
-        MoveHistory {
+        Self {
             records: Vec::new(),
             current_index: 0,
         }
@@ -90,5 +90,11 @@ impl MoveHistory {
     pub fn reset(&mut self) {
         self.records.clear();
         self.current_index = 0;
+    }
+}
+
+impl Default for MoveHistory {
+    fn default() -> Self {
+        Self::new()
     }
 }

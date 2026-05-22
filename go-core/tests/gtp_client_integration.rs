@@ -1,6 +1,71 @@
 use go_core::gtp_client::GtpClient;
 use std::path::PathBuf;
+use std::sync::mpsc;
 use std::time::Duration;
+
+#[test]
+fn gtp_client_command_timeout_returns_when_engine_stops_replying() {
+    use std::fs;
+    use std::os::unix::fs::PermissionsExt;
+
+    let temp_dir = tempfile::tempdir().expect("tempdir should be created");
+    let engine_path = temp_dir.path().join("fake-gtp-engine.sh");
+    fs::write(
+        &engine_path,
+        r#"#!/bin/sh
+while IFS= read -r line; do
+  case "$line" in
+    "genmove "*)
+      sleep 30
+      ;;
+    *)
+      printf '= \n\n'
+      ;;
+  esac
+done
+"#,
+    )
+    .expect("fake engine should be written");
+    let mut perms = fs::metadata(&engine_path)
+        .expect("fake engine metadata should be readable")
+        .permissions();
+    perms.set_mode(0o755);
+    fs::set_permissions(&engine_path, perms).expect("fake engine should be executable");
+
+    let (tx, rx) = mpsc::channel();
+    let engine_path_for_thread = engine_path.clone();
+    std::thread::spawn(move || {
+        let rt = tokio::runtime::Runtime::new().expect("runtime should be created");
+        let result = rt.block_on(async {
+            let mut client = GtpClient::new();
+            client
+                .start(
+                    engine_path_for_thread
+                        .to_str()
+                        .expect("fake engine path should be utf8"),
+                    "unused.cfg",
+                    "unused-model.bin.gz",
+                    19,
+                    1.0,
+                )
+                .await?;
+            client.command("genmove w", Some(0.2)).await
+        });
+        let _ = tx.send(result);
+    });
+
+    let result = rx
+        .recv_timeout(Duration::from_secs(2))
+        .expect("command timeout should return instead of hanging");
+
+    assert!(
+        result
+            .expect_err("unanswered command should fail")
+            .to_string()
+            .contains("timed out"),
+        "unanswered command should return a timeout error"
+    );
+}
 
 #[tokio::test]
 async fn gtp_client_can_play_and_generate_move() {

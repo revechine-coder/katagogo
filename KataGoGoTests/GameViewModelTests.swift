@@ -3,6 +3,43 @@ import XCTest
 
 final class GameViewModelTests: XCTestCase {
 
+    func testApplyRenderFrameViewSnapshotUpdatesBoardAndSuggestions() {
+        let vm = GameViewModel()
+        let snapshot = RenderFrameViewSnapshot(
+            boardSize: 19,
+            stones: [
+                (col: 3, row: 15, isBlack: true),
+                (col: 15, row: 3, isBlack: false),
+            ],
+            moveLabels: [
+                (col: 3, row: 15, moveNumber: 1),
+                (col: 15, row: 3, moveNumber: 2),
+            ],
+            starPoints: [(col: 3, row: 3)],
+            suggestions: [
+                (col: 10, row: 10, winrate: 0.57, lead: 2.5, visits: 128, order: 0),
+            ],
+            lastMove: (col: 15, row: 3),
+            moveCount: 2,
+            currentPlayer: "b",
+            capturesBlack: 1,
+            capturesWhite: 0
+        )
+
+        vm.apply(renderFrameViewSnapshot: snapshot)
+
+        XCTAssertEqual(vm.board[15][3], true)
+        XCTAssertEqual(vm.board[3][15], false)
+        XCTAssertEqual(vm.moveLabels.count, 2)
+        XCTAssertEqual(vm.lastMove?.col, 15)
+        XCTAssertEqual(vm.moveCount, 2)
+        XCTAssertEqual(vm.currentPlayer, "b")
+        XCTAssertEqual(vm.capturesBlack, 1)
+        XCTAssertEqual(vm.capturesWhite, 0)
+        XCTAssertEqual(vm.moveSuggestions.first?.col, 10)
+        XCTAssertEqual(vm.moveSuggestions.first?.order, 0)
+    }
+
     // MARK: - continueFromReview truncation
 
     func testContinueFromReviewTruncatesMoveHistory() {
