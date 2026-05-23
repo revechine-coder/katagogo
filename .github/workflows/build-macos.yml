@@ -1,0 +1,96 @@
+name: Build macOS App
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build KataGoGo
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Select Xcode 26
+        run: |
+          set -euo pipefail
+          if [ -d /Applications/Xcode_26.4.1.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.4.1.app
+          elif [ -d /Applications/Xcode_26.4.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.4.app
+          else
+            sudo xcode-select -s /Applications/Xcode.app
+          fi
+          xcodebuild -version
+
+      - name: Install KataGo runtime dependencies
+        run: |
+          set -euo pipefail
+          brew update
+          brew install libzip xz zstd
+
+      - name: Verify Git LFS model files
+        run: |
+          set -euo pipefail
+          git lfs ls-files
+          MODEL="kata-engine/kata1-b18c384nbt.bin.gz"
+          if head -n 1 "$MODEL" | grep -q '^version https://git-lfs.github.com/spec/v1'; then
+            echo "error: $MODEL is still a Git LFS pointer. The real model was not checked out." >&2
+            exit 1
+          fi
+          MODEL_SIZE="$(wc -c < "$MODEL" | tr -d ' ')"
+          if [ "$MODEL_SIZE" -lt 1000000 ]; then
+            echo "error: $MODEL is too small to be the real bundled model ($MODEL_SIZE bytes)." >&2
+            exit 1
+          fi
+          echo "Bundled model size: $MODEL_SIZE bytes"
+
+      - name: Build Release app
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project KataGoGo.xcodeproj \
+            -scheme KataGoGo \
+            -configuration Release \
+            -derivedDataPath "$RUNNER_TEMP/KataGoGoDerivedData" \
+            build
+
+      - name: Verify bundled engine resources
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/KataGoGoDerivedData/Build/Products/Release/KataGoGo.app"
+          ENGINE_DIR="$APP/Contents/Resources/kata-engine"
+          test -x "$ENGINE_DIR/katago-metal"
+          test -f "$ENGINE_DIR/gtp.cfg"
+          test -f "$ENGINE_DIR/kata1-b18c384nbt.bin.gz"
+          ls -lh "$ENGINE_DIR"
+          MODEL_SIZE="$(wc -c < "$ENGINE_DIR/kata1-b18c384nbt.bin.gz" | tr -d ' ')"
+          if [ "$MODEL_SIZE" -lt 1000000 ]; then
+            echo "error: bundled model is too small ($MODEL_SIZE bytes)." >&2
+            exit 1
+          fi
+          codesign --verify --deep --strict --verbose=2 "$APP"
+
+      - name: Package app
+        run: |
+          set -euo pipefail
+          APP="$RUNNER_TEMP/KataGoGoDerivedData/Build/Products/Release/KataGoGo.app"
+          ZIP="$RUNNER_TEMP/KataGoGo-macos26-arm64.zip"
+          ditto -c -k --sequesterRsrc --keepParent "$APP" "$ZIP"
+          ls -lh "$ZIP"
+          unzip -l "$ZIP" | grep 'kata-engine/kata1-b18c384nbt.bin.gz'
+
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KataGoGo-macos26-arm64
+          path: ${{ runner.temp }}/KataGoGo-macos26-arm64.zip
+          if-no-files-found: error
+          retention-days: 14

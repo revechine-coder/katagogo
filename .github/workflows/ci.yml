@@ -1,0 +1,107 @@
+name: CI Quality Gate
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality-gate:
+    name: Rust Core + macOS Native Tests
+    runs-on: macos-26
+    timeout-minutes: 45
+
+    env:
+      CARGO_TERM_COLOR: always
+      DERIVED_DATA_PATH: ${{ runner.temp }}/KataGoGoDerivedData
+      RUST_BACKTRACE: 1
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Select Xcode 26
+        run: |
+          set -euo pipefail
+          if [ -d /Applications/Xcode_26.4.1.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.4.1.app
+          elif [ -d /Applications/Xcode_26.4.app ]; then
+            sudo xcode-select -s /Applications/Xcode_26.4.app
+          else
+            sudo xcode-select -s /Applications/Xcode.app
+          fi
+          xcodebuild -version
+
+      - name: Install KataGo runtime dependencies
+        run: |
+          set -euo pipefail
+          brew update
+          brew install libzip xz zstd
+
+      - name: Cache Cargo dependencies and build output
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/git
+            ~/.cargo/registry
+            go-core/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('go-core/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      - name: Cache Xcode DerivedData
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.DERIVED_DATA_PATH }}
+          key: ${{ runner.os }}-xcode-${{ hashFiles('KataGoGo.xcodeproj/project.pbxproj', 'KataGoGo.xcodeproj/xcshareddata/xcschemes/*.xcscheme', 'KataGoGo/**/*.swift', 'KataGoGoTests/**/*.swift') }}
+          restore-keys: |
+            ${{ runner.os }}-xcode-
+
+      - name: Verify bundled engine model
+        run: |
+          set -euo pipefail
+          MODEL="kata-engine/kata1-b18c384nbt.bin.gz"
+          if head -n 1 "$MODEL" | grep -q '^version https://git-lfs.github.com/spec/v1'; then
+            echo "error: $MODEL is still a Git LFS pointer. The real model was not checked out." >&2
+            exit 1
+          fi
+          MODEL_SIZE="$(wc -c < "$MODEL" | tr -d ' ')"
+          if [ "$MODEL_SIZE" -lt 1000000 ]; then
+            echo "error: $MODEL is too small to be the real bundled model ($MODEL_SIZE bytes)." >&2
+            exit 1
+          fi
+          echo "Bundled model size: $MODEL_SIZE bytes"
+
+      - name: Rust format check
+        run: cargo fmt --manifest-path go-core/Cargo.toml --all -- --check
+
+      - name: Rust clippy
+        run: cargo clippy --manifest-path go-core/Cargo.toml --all-targets -- -D warnings
+
+      - name: Rust tests
+        run: cargo test --manifest-path go-core/Cargo.toml
+
+      - name: FFI static library pre-build
+        run: |
+          set -euo pipefail
+          cargo build --manifest-path go-core/Cargo.toml --release
+          cp go-core/target/release/libgo_core.a KataGoGo/SharedCore/libgo_core.a
+          cp go-core/src/go_core.h KataGoGo/SharedCore/go_core.h
+          ls -lh KataGoGo/SharedCore/libgo_core.a KataGoGo/SharedCore/go_core.h
+
+      - name: macOS native tests
+        run: |
+          set -euo pipefail
+          xcodebuild \
+            -project KataGoGo.xcodeproj \
+            -scheme KataGoGo \
+            -derivedDataPath "$DERIVED_DATA_PATH" \
+            test

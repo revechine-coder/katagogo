@@ -1,0 +1,526 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		CCF5AD132FB99CF400D1BE16 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = CC301AA72FB8DA9D00B5657F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = CC301AAE2FB8DA9D00B5657F;
+			remoteInfo = KataGoGo;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		CCF5AD0C2FB99CF400D1BE16 /* KataGoGo.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KataGoGo.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		CCF5AD0D2FB99CF400D1BE16 /* KataGoGoTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = KataGoGoTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		CC301AB12FB8DA9D00B5657F /* KataGoGo */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KataGoGo;
+			sourceTree = "<group>";
+		};
+		CCF5AD0E2FB99CF400D1BE16 /* KataGoGoTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = KataGoGoTests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		CC301AAC2FB8DA9D00B5657F /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CCF5AD0F2FB99CF400D1BE16 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		CC301AA62FB8DA9D00B5657F = {
+			isa = PBXGroup;
+			children = (
+				CC301AB12FB8DA9D00B5657F /* KataGoGo */,
+				CCF5AD0E2FB99CF400D1BE16 /* KataGoGoTests */,
+				CCF5AD0C2FB99CF400D1BE16 /* KataGoGo.app */,
+				CCF5AD0D2FB99CF400D1BE16 /* KataGoGoTests.xctest */,
+			);
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		CC301AAE2FB8DA9D00B5657F /* KataGoGo */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CC301ABA2FB8DA9E00B5657F /* Build configuration list for PBXNativeTarget "KataGoGo" */;
+			buildPhases = (
+				CC301AAB2FB8DA9D00B5657F /* Sources */,
+				CC301AAC2FB8DA9D00B5657F /* Frameworks */,
+				CC301AAD2FB8DA9D00B5657F /* Resources */,
+				CC301ABE2FB8DA9E00B56580 /* Copy Engine Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				CC301AB12FB8DA9D00B5657F /* KataGoGo */,
+			);
+			name = KataGoGo;
+			packageProductDependencies = (
+			);
+			productName = KataGoGo;
+			productReference = CCF5AD0C2FB99CF400D1BE16 /* KataGoGo.app */;
+			productType = "com.apple.product-type.application";
+		};
+		CCF5AD122FB99CF400D1BE16 /* KataGoGoTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = CCF5AD172FB99CF400D1BE16 /* Build configuration list for PBXNativeTarget "KataGoGoTests" */;
+			buildPhases = (
+				CCF5AD112FB99CF400D1BE16 /* Sources */,
+				CCF5AD0F2FB99CF400D1BE16 /* Frameworks */,
+				CCF5AD102FB99CF400D1BE16 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				CCF5AD142FB99CF400D1BE16 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				CCF5AD0E2FB99CF400D1BE16 /* KataGoGoTests */,
+			);
+			name = KataGoGoTests;
+			packageProductDependencies = (
+			);
+			productName = KataGoGoTests;
+			productReference = CCF5AD0D2FB99CF400D1BE16 /* KataGoGoTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		CC301AA72FB8DA9D00B5657F /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 2650;
+				LastUpgradeCheck = 2650;
+				TargetAttributes = {
+					CC301AAE2FB8DA9D00B5657F = {
+						CreatedOnToolsVersion = 26.5;
+						LastSwiftMigration = 2650;
+					};
+					CCF5AD122FB99CF400D1BE16 = {
+						CreatedOnToolsVersion = 26.5;
+						TestTargetID = CC301AAE2FB8DA9D00B5657F;
+					};
+				};
+			};
+			buildConfigurationList = CC301AAA2FB8DA9D00B5657F /* Build configuration list for PBXProject "KataGoGo" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = CC301AA62FB8DA9D00B5657F;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = CC301AA62FB8DA9D00B5657F;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				CC301AAE2FB8DA9D00B5657F /* KataGoGo */,
+				CCF5AD122FB99CF400D1BE16 /* KataGoGoTests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		CC301AAD2FB8DA9D00B5657F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CCF5AD102FB99CF400D1BE16 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		CC301ABE2FB8DA9E00B56580 /* Copy Engine Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"$(SRCROOT)/kata-engine/katago-metal",
+				"$(SRCROOT)/kata-engine/gtp.cfg",
+				"$(SRCROOT)/kata-engine/kata1-b18c384nbt.bin.gz",
+				/opt/homebrew/opt/libzip/lib/libzip.5.dylib,
+				/opt/homebrew/opt/xz/lib/liblzma.5.dylib,
+				/opt/homebrew/opt/zstd/lib/libzstd.1.dylib,
+			);
+			name = "Copy Engine Resources";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/katago-metal",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/gtp.cfg",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/kata1-b18c384nbt.bin.gz",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/libzip.5.dylib",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/liblzma.5.dylib",
+				"$(TARGET_BUILD_DIR)/$(WRAPPER_NAME)/Contents/Resources/kata-engine/libzstd.1.dylib",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "set -e\nENGINE_SRC=\"${SRCROOT}/kata-engine\"\nENGINE_DST=\"${TARGET_BUILD_DIR}/${WRAPPER_NAME}/Contents/Resources/kata-engine\"\nENGINE_BINARY=\"katago-metal\"\nENGINE_CONFIG=\"gtp.cfg\"\nENGINE_MODEL=\"kata1-b18c384nbt.bin.gz\"\nLIBZIP_SRC=\"/opt/homebrew/opt/libzip/lib/libzip.5.dylib\"\nLIBLZMA_SRC=\"/opt/homebrew/opt/xz/lib/liblzma.5.dylib\"\nLIBZSTD_SRC=\"/opt/homebrew/opt/zstd/lib/libzstd.1.dylib\"\n\nfor file in \"${ENGINE_BINARY}\" \"${ENGINE_CONFIG}\" \"${ENGINE_MODEL}\"; do\n    if [ ! -f \"${ENGINE_SRC}/${file}\" ]; then\n        echo \"error: Missing bundled KataGo engine resource: ${ENGINE_SRC}/${file}\" >&2\n        exit 1\n    fi\ndone\n\nMODEL_PATH=\"${ENGINE_SRC}/${ENGINE_MODEL}\"\nif head -n 1 \"${MODEL_PATH}\" | grep -q \"^version https://git-lfs.github.com/spec/v1\"; then\n    echo \"error: ${MODEL_PATH} is a Git LFS pointer, not the real KataGo model. Run 'git lfs pull' before building.\" >&2\n    exit 1\nfi\nMODEL_SIZE=\"$(wc -c < \"${MODEL_PATH}\" | tr -d ' ')\"\nif [ \"${MODEL_SIZE}\" -lt 1000000 ]; then\n    echo \"error: ${MODEL_PATH} is too small to be a bundled KataGo model (${MODEL_SIZE} bytes). Run 'git lfs pull' before building.\" >&2\n    exit 1\nfi\n\nfor dylib in \"${LIBZIP_SRC}\" \"${LIBLZMA_SRC}\" \"${LIBZSTD_SRC}\"; do\n    if [ ! -f \"${dylib}\" ]; then\n        echo \"error: Missing KataGo dynamic library dependency: ${dylib}\" >&2\n        exit 1\n    fi\ndone\n\nWORK=\"$(mktemp -d)\"\ntrap \"rm -rf '${WORK}'\" EXIT\n\ncp \"${ENGINE_SRC}/${ENGINE_BINARY}\" \"${WORK}/${ENGINE_BINARY}\"\ncp -L \"${LIBZIP_SRC}\" \"${WORK}/libzip.5.dylib\"\ncp -L \"${LIBLZMA_SRC}\" \"${WORK}/liblzma.5.dylib\"\ncp -L \"${LIBZSTD_SRC}\" \"${WORK}/libzstd.1.dylib\"\n\nchmod u+w \"${WORK}/${ENGINE_BINARY}\" \"${WORK}/libzip.5.dylib\" \"${WORK}/liblzma.5.dylib\" \"${WORK}/libzstd.1.dylib\"\n\ninstall_name_tool -change \"${LIBZIP_SRC}\" \"@loader_path/libzip.5.dylib\" \"${WORK}/${ENGINE_BINARY}\"\ninstall_name_tool -id \"@loader_path/libzip.5.dylib\" \"${WORK}/libzip.5.dylib\"\ninstall_name_tool -change \"${LIBLZMA_SRC}\" \"@loader_path/liblzma.5.dylib\" \"${WORK}/libzip.5.dylib\"\ninstall_name_tool -change \"${LIBZSTD_SRC}\" \"@loader_path/libzstd.1.dylib\" \"${WORK}/libzip.5.dylib\"\ninstall_name_tool -id \"@loader_path/liblzma.5.dylib\" \"${WORK}/liblzma.5.dylib\"\ninstall_name_tool -id \"@loader_path/libzstd.1.dylib\" \"${WORK}/libzstd.1.dylib\"\n\ncodesign --force --sign - \"${WORK}/${ENGINE_BINARY}\" \"${WORK}/libzip.5.dylib\" \"${WORK}/liblzma.5.dylib\" \"${WORK}/libzstd.1.dylib\"\n\nmkdir -p \"${ENGINE_DST}\"\nrm -f \"${ENGINE_DST}/${ENGINE_BINARY}\" \"${ENGINE_DST}/${ENGINE_CONFIG}\" \"${ENGINE_DST}/${ENGINE_MODEL}\" \\\n      \"${ENGINE_DST}/libzip.5.dylib\" \"${ENGINE_DST}/liblzma.5.dylib\" \"${ENGINE_DST}/libzstd.1.dylib\"\n\nmv \"${WORK}/${ENGINE_BINARY}\" \"${ENGINE_DST}/\"\nmv \"${WORK}/libzip.5.dylib\" \"${ENGINE_DST}/\"\nmv \"${WORK}/liblzma.5.dylib\" \"${ENGINE_DST}/\"\nmv \"${WORK}/libzstd.1.dylib\" \"${ENGINE_DST}/\"\n\ncp \"${ENGINE_SRC}/${ENGINE_CONFIG}\" \"${ENGINE_DST}/\"\ncp \"${ENGINE_SRC}/${ENGINE_MODEL}\" \"${ENGINE_DST}/\"\n\nchmod 755 \"${ENGINE_DST}/${ENGINE_BINARY}\" \"${ENGINE_DST}/libzip.5.dylib\" \"${ENGINE_DST}/liblzma.5.dylib\" \"${ENGINE_DST}/libzstd.1.dylib\"\nchmod 644 \"${ENGINE_DST}/${ENGINE_CONFIG}\" \"${ENGINE_DST}/${ENGINE_MODEL}\"\n\necho \"Bundled KataGo Metal engine resources in ${ENGINE_DST}\"\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		CC301AAB2FB8DA9D00B5657F /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CCF5AD112FB99CF400D1BE16 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		CCF5AD142FB99CF400D1BE16 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = CC301AAE2FB8DA9D00B5657F /* KataGoGo */;
+			targetProxy = CCF5AD132FB99CF400D1BE16 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		CC301AB82FB8DA9E00B5657F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.3;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		CC301AB92FB8DA9E00B5657F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.3;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+			};
+			name = Release;
+		};
+		CC301ABB2FB8DA9E00B5657F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/KataGoGo/SharedCore",
+					"$(PROJECT_DIR)/go-core/target/debug/deps",
+					"$(PROJECT_DIR)/go-core/target/release/deps",
+					"$(PROJECT_DIR)/go-core/target/release",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-lgo_core";
+				PRODUCT_BUNDLE_IDENTIFIER = winner.KataGoGo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		CC301ABC2FB8DA9E00B5657F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CLANG_ENABLE_MODULES = YES;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_APP_SANDBOX = NO;
+				ENABLE_PREVIEWS = YES;
+				ENABLE_USER_SELECTED_FILES = readonly;
+				GCC_OPTIMIZATION_LEVEL = s;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(PROJECT_DIR)/KataGoGo/SharedCore",
+					"$(PROJECT_DIR)/go-core/target/debug/deps",
+					"$(PROJECT_DIR)/go-core/target/release/deps",
+					"$(PROJECT_DIR)/go-core/target/release",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26;
+				MARKETING_VERSION = 1.0;
+				OTHER_LDFLAGS = "-lgo_core";
+				PRODUCT_BUNDLE_IDENTIFIER = winner.KataGoGo;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		CCF5AD152FB99CF400D1BE16 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_TESTING_SEARCH_PATHS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = winner.KataGoGoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KataGoGo.app/Contents/MacOS/KataGoGo";
+			};
+			name = Debug;
+		};
+		CCF5AD162FB99CF400D1BE16 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ARCHS = arm64;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_TESTING_SEARCH_PATHS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 26;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = winner.KataGoGoTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/KataGoGo.app/Contents/MacOS/KataGoGo";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		CC301AAA2FB8DA9D00B5657F /* Build configuration list for PBXProject "KataGoGo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC301AB82FB8DA9E00B5657F /* Debug */,
+				CC301AB92FB8DA9E00B5657F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CC301ABA2FB8DA9E00B5657F /* Build configuration list for PBXNativeTarget "KataGoGo" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CC301ABB2FB8DA9E00B5657F /* Debug */,
+				CC301ABC2FB8DA9E00B5657F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		CCF5AD172FB99CF400D1BE16 /* Build configuration list for PBXNativeTarget "KataGoGoTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				CCF5AD152FB99CF400D1BE16 /* Debug */,
+				CCF5AD162FB99CF400D1BE16 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = CC301AA72FB8DA9D00B5657F /* Project object */;
+}

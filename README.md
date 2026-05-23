@@ -1,175 +1,125 @@
-# KataGoGo — Cross-Platform Go Game Client with KataGo AI
+# KataGoGo
 
-[English](#english) | [中文](#chinese)
+KataGoGo is a native macOS Go training workspace built around KataGo. It pairs a quiet SwiftUI board interface with a bundled KataGo engine, game saving, replay review, compact AI readouts, and local engine resources for study sessions.
 
----
+The app is designed as a desktop training desk: the board stays central, side panels stay dense, and engine feedback is visible without turning the UI into a dashboard.
 
-<a name="chinese"></a>
+## Download
 
-## 中文介绍
+Current macOS app package:
 
-**KataGoGo** 是一个基于 **KataGo** 强大 GTP 引擎驱动的跨平台围棋（Weiqi）客户端项目。
+[Download KataGoGo-macos26-arm64.zip](https://github.com/revechine-coder/katagogo/releases/download/v0.1.0/KataGoGo-macos26-arm64.zip)
 
-该项目的第一阶段专为 **macOS** 开发，采用 **SwiftUI** 构建原生精美界面，并使用 **Rust** 编写跨平台的高性能共享核心（`go_core`），两者通过零开销的 C ABI 进行静态链接交互。
+Release page:
 
-### 核心功能
+[KataGoGo v0.1.0](https://github.com/revechine-coder/katagogo/releases/tag/v0.1.0)
 
-- **AI 对弈**：基于 KataGo GTP 引擎，支持多档难度（1d 到 3d 等）动态对局。
-- **实时形势分析**：实时计算并渲染胜率条（Winrate Bar）与目差（Score Lead）。
-- **全路复盘缩略图**：左侧提供带有全手顺编号的高性能迷你棋盘。
-- **完美的悔棋/跳转系统**：支持无限次 Undo/Redo 与历史节点重新分支落子。
-- **导出与兼容性**：支持标准 SGF 格式导出。
+## System Support
 
-### 技术架构
+Current supported version:
 
-项目使用清晰的**数据单向流**与**双层架构**：
+- macOS 26 or later
+- Apple Silicon Macs (`arm64`)
+- Xcode with the macOS 26 SDK
+- Metal-capable local KataGo engine resources
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                    macOS SwiftUI Layer                    │
-│  ┌─────────┐  ┌──────────────┐  ┌────────────────────┐  │
-│  │MiniMap  │  │BoardView     │  │AnalysisPanel       │  │
-│  │(CG)     │  │(Metal/CG)    │  │- WinrateBar        │  │
-│  │+编号     │  │+手势缩放      │  │- ScoreLeadView     │  │
-│  └─────────┘  └──────────────┘  └────────────────────┘  │
-│                     │                                    │
-│             GameViewModel (ObservableObject)              │
-│                     │                                    │
-│               GoCoreBridge (Swift FFI)                   │
-└──────────────────────┬───────────────────────────────────┘
-                       │ C ABI (GoCoreBridge.swift)
-┌──────────────────────▼───────────────────────────────────┐
-│              Rust go_core staticlib                        │
-│  GameState | MoveHistory | GtpClient | AnalysisData       │
-│  SgfParser | BoardRenderer (→ RenderFrame)               │
-└──────────────────────┬───────────────────────────────────┘
-                       │ stdin/stdout
-              ┌────────▼────────┐
-              │  KataGo GTP     │
-              │  (subprocess)   │
-              └─────────────────┘
-```
+## Features
 
-1. **Rust 共享核心 (`go_core`)**：负责管理棋盘逻辑（GameState）、历史纪录（MoveHistory）、拉起并解析 KataGo 进程（GtpClient）的胜率及目差数据，最后将其包装为只读的渲染帧（RenderFrame）供 Swift 渲染，避免前端和核心层数据不一致。
-2. **Swift 桥接层 (`GoCoreBridge.swift`)**：利用 `@_silgen_name` 高速加载 Rust 导出的 C ABI，无需任何 Obj-C 繁琐中介。
-3. **SwiftUI 展现层**：纯声明式 UI，通过 Canvas/Metal 进行高效渲染绘制，确保超低开销。
+- Native SwiftUI macOS interface
+- 19x19 Go board with coordinate and move label toggles
+- KataGo engine integration through the local Rust `go-core` bridge
+- AI winrate, score lead, model, think time, and step readouts
+- Game timer and per-move elapsed-time history
+- Save/load local games as JSON
+- Review mode with move timeline navigation
+- Built-in stone sound presets
+- Bundled KataGo engine and model resources
+- Git LFS tracking for large model and release artifacts
 
-### 源码结构
+## Repository Layout
 
 ```text
-.
-├── Cargo.toml                  # Rust 依赖与 staticlib 配置
-├── Makefile                    # 快捷一键编译、测试、链接脚本
-├── GoCoreBridge.swift          # Swift 对 FFI 的面向对象闭合封装
-├── docs/                       # 设计规格与阶段性实现方案目录
-│   └── superpowers/
-│       ├── specs/              # macOS 精细设计交互规格文档
-│       └── plans/              # 阶段 1A (Rust) / 1B (Swift) 开发执行计划
-└── src/                        # Rust 核心源代码
-    ├── lib.rs                  # FFI ABI 核心暴露定义
-    ├── ffi.rs                  # 专为 C ABI 设计的类型安全导出和数据转化
-    ├── game_state.rs           # 棋盘规则和执子状态校验
-    ├── gtp_client.rs           # 异步/同步高并发 KataGo 子进程控制和解析
-    ├── render_frame.rs         # 紧凑型扁平化棋盘结构，直接映射至 Swift
-    └── tests/                  # 16+ 个覆盖完整的 Rust 单元测试
+KataGoGo/              SwiftUI macOS application source
+KataGoGoTests/         Xcode unit tests
+go-core/               Rust bridge for Go/KataGo engine interaction
+kata-engine/           Bundled KataGo binaries, config, and model files
+kata-go-src/           Vendored KataGo source reference
+games/                 Local saved-game JSON store
+scripts/               Release and asset helper scripts
+docs/                  Project notes and repository maintenance docs
+DESIGN.md              Product and UI design system guide
 ```
 
-### 快速编译与测试
+More detail is in [docs/REPOSITORY.md](docs/REPOSITORY.md).
 
-在具备 Rust 环境的 macOS/Linux 主机上运行：
+## Git LFS
 
-**1. 运行所有单元测试**
-```bash
-make test
+This repository uses Git LFS for large KataGo model and release files. Install Git LFS before cloning or pulling the project:
+
+```sh
+brew install git-lfs
+git lfs install
+git clone https://github.com/revechine-coder/katagogo.git
+cd katagogo
+git lfs pull
 ```
 
-**2. 编译 Release 静态链接库 (`libgo_core.a`)**
-```bash
-make release
+Without LFS, large model files may appear as small pointer files and the bundled engine resources will be incomplete.
+The Xcode build script checks for this and fails if the bundled model is still a Git LFS pointer.
+
+## Build From Source
+
+Requirements:
+
+- macOS with Xcode installed
+- Rust toolchain for `go-core`
+- Git LFS
+- Homebrew libraries used by bundled engine packaging: `libzip`, `xz`, `zstd`
+
+Basic Debug build:
+
+```sh
+DEVELOPER_DIR=/Applications/Xcode.app/Contents/Developer \
+xcodebuild \
+  -project KataGoGo.xcodeproj \
+  -scheme KataGoGo \
+  -configuration Debug \
+  -derivedDataPath /tmp/KataGoGoDerivedData \
+  build
 ```
 
----
+## Build On GitHub
 
-<a name="english"></a>
+The repository includes a GitHub Actions workflow at `.github/workflows/build-macos.yml`.
 
-## English Introduction
+- Runner: `macos-26`
+- Build: Release `KataGoGo.app`
+- Artifact: `KataGoGo-macos26-arm64.zip`
+- The workflow checks out Git LFS files and fails if the bundled model is still an LFS pointer.
 
-**KataGoGo** is a cross-platform Go (Weiqi) game application powered by the state-of-the-art **KataGo** GTP engine.
+Run it from GitHub:
 
-Phase 1 targets **macOS** with a native SwiftUI frontend statically linked to a high-performance **Rust** shared core (`go_core`) via a zero-overhead C ABI.
+1. Open the repository on GitHub.
+2. Go to **Actions**.
+3. Select **Build macOS App**.
+4. Click **Run workflow**.
+5. Download the `KataGoGo-macos26-arm64` artifact from the completed run.
 
-### Key Features
+## Engine Resources
 
-- **AI Play & Matchmaking**: Choose from multiple AI difficulty levels (e.g., 1d-3d) powered by KataGo.
-- **Real-Time Analysis**: Dynamic winrate progress bars and real-time score leads (Points margin).
-- **Move Annotated MiniMap**: A high-efficiency minimap on the sidebar showing the entire board annotated with full move sequences.
-- **Robust History Branching**: Supports unlimited undo/redo with safe board-state branching.
-- **SGF Exporting**: Generate standard SGF output for easy game reviewing.
+The app expects KataGo resources under `kata-engine/`, including:
 
-### System Architecture
+- `katago-metal`
+- `katago-eigen`
+- `gtp.cfg`
+- model files such as `kata1-b18c384nbt.bin.gz`
 
-The project features a **unidirectional data flow** with decoupling between UI and core engine:
+Large model files are tracked with Git LFS. The default packaged model is the smaller `b18c384` model for practical local play.
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                    macOS SwiftUI Layer                    │
-│  ┌─────────┐  ┌──────────────┐  ┌────────────────────┐  │
-│  │MiniMap  │  │BoardView     │  │AnalysisPanel       │  │
-│  │(CG)     │  │(Metal/CG)    │  │- WinrateBar        │  │
-│  │+编号     │  │+手势缩放      │  │- ScoreLeadView     │  │
-│  └─────────┘  └──────────────┘  └────────────────────┘  │
-│                     │                                    │
-│             GameViewModel (ObservableObject)              │
-│                     │                                    │
-│               GoCoreBridge (Swift FFI)                   │
-└──────────────────────┬───────────────────────────────────┘
-                       │ C ABI (GoCoreBridge.swift)
-┌──────────────────────▼───────────────────────────────────┐
-│              Rust go_core staticlib                        │
-│  GameState | MoveHistory | GtpClient | AnalysisData       │
-│  SgfParser | BoardRenderer (→ RenderFrame)               │
-└──────────────────────┬───────────────────────────────────┘
-                       │ stdin/stdout
-              ┌────────▼────────┐
-              │  KataGo GTP     │
-              │  (subprocess)   │
-              └─────────────────┘
-```
+## Saved Games
 
-1. **Rust Shared Core (`go_core`)**: Tracks game states, move histories, and manages the lifecycle of the KataGo subprocess. Stderr is parsed in background threads. It outputs a data-only `RenderFrame` snapshot.
-2. **Swift FFI Bridge (`GoCoreBridge.swift`)**: Uses Swift `@_silgen_name` to call Rust ABI directly, bypassing Objective-C wrappers entirely.
-3. **SwiftUI Layer**: Renders the `RenderFrame` declaratively using CoreGraphics/Metal, ensuring maximum efficiency and responsiveness.
+Saved games are JSON files under `games/`, with `_index.json` acting as a lightweight manifest. The app records move history, elapsed time, winrate, score lead, final score when available, and engine model metadata.
 
-### Directory Layout
+## Design Notes
 
-```text
-.
-├── Cargo.toml                  # Rust library manifest & crate-type settings
-├── Makefile                    # Automation build and testing script
-├── GoCoreBridge.swift          # Swift object-oriented wrapper around the C FFI
-├── docs/                       # Project specifications and dev roadmaps
-│   └── superpowers/
-│       ├── specs/              # Detailed macOS specifications & UI designs
-│       └── plans/              # Action plans for Phase 1A (Rust) & 1B (Swift)
-└── src/                        # Rust Core Source Files
-    ├── lib.rs                  # Library entrypoint & FFI boundary
-    ├── ffi.rs                  # Safe C ABI data conversions
-    ├── game_state.rs           # Core Go logic & move validations
-    ├── gtp_client.rs           # Non-blocking GTP subprocess controller
-    ├── render_frame.rs         # Flat UI data transfer structure
-    └── tests/                  # Robust suite of unit tests (16+ tests)
-```
-
-### Build & Run Tests
-
-Ensure you have Rust toolchain installed, then run inside the `go-core` directory:
-
-**1. Run Unit Tests**
-```bash
-make test
-```
-
-**2. Compile Release Static Library (`libgo_core.a`)**
-```bash
-make release
-```
+UI direction and implementation guidance live in [DESIGN.md](DESIGN.md). In short: keep the board dominant, use teal only for AI/active signals, keep panels compact, and prefer native macOS controls.
